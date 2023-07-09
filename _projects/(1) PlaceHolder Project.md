@@ -1,7 +1,7 @@
 ---
-name: PlaceHolder Project
-tools: [nothing, important]
-image: https://www.sketchappsources.com/resources/source-image/project-neon-groove-music-ui.png
-description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-external_url: https://www.google.com
+name: Ozone chemistry of wildfires
+tools: [Data Assimilation, Chemical Transport Modeling]
+image: https://i.imgur.com/0JJHsa2.png
+description: This study looks at how the Williams Flats wildfire in August 2019 affected ozone and its chemistry in areas downwind of the fire.
+external_url: https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022JD038019
 ---
