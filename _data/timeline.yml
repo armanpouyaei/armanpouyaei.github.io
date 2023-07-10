@@ -1,11 +1,13 @@
 - title: Graduate Research Assistant, University of Houston, Houston
   from: 2018
   to: 2022
-  description: Introduced a novel Lagrangian model, C-TRAIL v1.0,
+  description: (1) Introduced a novel Lagrangian model, C-TRAIL v1.0,
                providing an alternative method for simulating atmospheric
                diffusion through incorporation in an Eulerian air quality model.
-               nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-               reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+               (2) Developed a physically accurate sub-grid cloud convection module
+               based on a meteorological approach for accurate quantification of vertical
+               and long-range transport in CMAQ air quality modeling.
+               
 
 - title: Postdoctoral Researcher, University of Houston, Houston
   from: 2022
