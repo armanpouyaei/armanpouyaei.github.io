@@ -3,7 +3,7 @@ title               : Arman Pouyaei
 description         : >-
                       Hi I'm Arman Pouyaei,
                       Climate scientist at Princeton University / NOAA Geophysical Fluid Dynamic
-                      Laboratory, developing modeling tools to ...
+                      Laboratory, advancing modeling tools to study Earth's atmosphere.
 baseurl             : ""                     # Change to empty quotes if you are hosting your site at <your-username>.github.io directly
 repository          : armanpouyaei/armanpouyaei.github.io     # Change to <your-username>/<your-username>.github.io (or remove it if you don't need remote projects)
 remote_theme        : YoussefRaafatNasry/portfolYOU
