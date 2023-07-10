@@ -17,13 +17,13 @@
   to: 2023
   description: (1) Introduced a novel approach for investigating aerosol-cloud interaction
                using data assimilation and spectral bin method for microphysics. Designed
-               the forward operator for NEXRAD radar assimilation. Designing a 3DVAR 
-               framework for the application of data assimilation. 
+               the forward operator for NEXRAD radar assimilation. Designed a 3DVAR 
+               framework for the application of radar data assimilation. 
 
 - title: Postdoctoral Research Associate, Princeton University / NOAA GFDL, Princeton
   from: 2023
   to: present
-  description: (1) Design and develop a plume injection scheme for biomass burning
+  description: (1) Design and developed a plume injection scheme for biomass burning
                emissions in GFDL’s CM4 and implement the scheme into the aerosol module
                to study the decadal impact of plume injection height from wildfires
                on coupled climate modeling systems. 
