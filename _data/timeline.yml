@@ -1,6 +1,22 @@
+- title: Postdoctoral Research Associate, Princeton University / NOAA GFDL, Princeton
+  from: March - 2023
+  to: present
+  description: (1) Designed and developed a plume injection scheme for biomass burning
+               emissions in GFDL’s CM4 and implemented the scheme into the aerosol module
+               to study the decadal impact of plume injection height from wildfires
+               on coupled climate modeling systems. 
+               
+- title: Postdoctoral Researcher, University of Houston, Houston
+  from: August - 2022
+  to: February - 2023
+  description: (1) Introduced a novel approach for investigating aerosol-cloud interaction
+               using data assimilation and spectral bin method for microphysics. Designed
+               the forward operator for NEXRAD radar assimilation. Designed a 3DVAR 
+               framework for the application of radar data assimilation. 
+               
 - title: Graduate Research Assistant, University of Houston, Houston
-  from: 2018
-  to: 2022
+  from: June - 2018
+  to: August - 2022
   description: (1) Introduced a novel Lagrangian model, C-TRAIL v1.0,
                providing an alternative method for simulating atmospheric
                diffusion through incorporation in an Eulerian air quality model.
@@ -10,20 +26,4 @@
                (3) Developed Forward Operator for OMI HCHO/NO2 and implemented them in
                the WRF-Chem/DART framework, to study wildfire-related ozone formation
                during the 2019 FIREX-AQ campaign.
-               
 
-- title: Postdoctoral Researcher, University of Houston, Houston
-  from: 2022
-  to: 2023
-  description: (1) Introduced a novel approach for investigating aerosol-cloud interaction
-               using data assimilation and spectral bin method for microphysics. Designed
-               the forward operator for NEXRAD radar assimilation. Designed a 3DVAR 
-               framework for the application of radar data assimilation. 
-
-- title: Postdoctoral Research Associate, Princeton University / NOAA GFDL, Princeton
-  from: 2023
-  to: present
-  description: (1) Designed and developed a plume injection scheme for biomass burning
-               emissions in GFDL’s CM4 and implemented the scheme into the aerosol module
-               to study the decadal impact of plume injection height from wildfires
-               on coupled climate modeling systems. 
