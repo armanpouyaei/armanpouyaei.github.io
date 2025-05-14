@@ -1,10 +1,21 @@
+- title: Data Engineer, First Street, New York City
+  from: May 2025
+  to: present
+  description: (1) Designing and implementing data pipelines for climate risk analysis. 
+               
 - title: Postdoctoral Research Associate, Princeton University / NOAA GFDL, Princeton
   from: March 2023
-  to: present
+  to: May 2025
   description: (1) Designed and developed a plume injection scheme for biomass burning
-               emissions in GFDL’s CM4 and implemented the scheme into the aerosol module
+               emissions in GFDL’s AM4 and implemented the scheme into the aerosol module
                to study the decadal impact of plume injection height from wildfires
-               on coupled climate modeling systems. 
+               on coupled climate modeling systems.
+               (2) Implemented the plume injection scheme to AM4.1 full chemistry and analyzed
+               the ENSO-driven variability of ozone sources (biomass burning, lightning NOx, 
+               stratospheric exchange, etc.) on tropospheric ozone radiative forcing
+               (3) Developed and implemented interactive fire emissions and injection in
+               GFDL's ESM4.5 coupling emissions from dynamic fire in LM4.2 to atmospheric
+               chemistry and aerosols in AM4.5
                
 - title: Postdoctoral Researcher, University of Houston, Houston
   from: August 2022
