@@ -1,5 +1,5 @@
 ---
-name: Implementation of Dynamic Fire Injection Height in GFDL's Atmospheric Model (AM4.0): Impacts on Aerosol Profiles and Radiation
+name: Dynamic fire injection height in AM4.0
 tools: [Climate modeling, Aerosol processes, Model development]
 description: This study develops a dynamic fire injection height approach in GFDL AM4.0 and evaluates its impacts on aerosol vertical profiles and radiation through global simulations.
 ---

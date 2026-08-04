@@ -1,5 +1,5 @@
 ---
-name: ENSO-Driven Variability in Ozone Sources and Its Impact on Tropospheric Ozone Radiative Forcing
+name: ENSO-driven ozone sources and radiative forcing
 tools: [Atmospheric chemistry, Climate modeling, Model analysis]
 description: This study explores how ENSO-driven changes in ozone sources alter tropospheric ozone radiative forcing in coupled simulations.
 ---

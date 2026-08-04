@@ -1,5 +1,5 @@
 ---
-name: Linking Prognostic Fire Emissions to Atmospheric Chemistry and Aerosols in GFDL Atmospheric and Land Model version 4.2 (AM4.2/LM4.2)
+name: Prognostic fire emissions in AM4.2/LM4.2
 tools: [Climate modeling, Fire emissions, Aerosols, Model development]
 description: This preprint links prognostic fire emissions to atmospheric chemistry and aerosols in GFDL AM4.2/LM4.2 and evaluates their coupled impacts.
 ---
