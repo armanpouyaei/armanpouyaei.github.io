@@ -1,0 +1,269 @@
+% Arman Pouyaei — Resume
+% Compiled in-browser (SwiftLaTeX/pdfTeX) from this single source file.
+% Keep packages to the standard set so the web renderer can fetch them on demand.
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc} % no-op under XeTeX (UTF-8 is native there)
+% T1 font encoding is for pdfLaTeX only. The browser renderer compiles with
+% XeTeX, which uses Unicode (TU) fonts natively — requesting T1 there asks
+% for EC-encoded metrics the web TeX Live bundle does not ship.
+\ifx\XeTeXrevision\undefined
+  \usepackage[T1]{fontenc}
+\fi
+\usepackage[margin=0.5in,top=0.4in,bottom=0.4in]{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\definecolor{accent}{HTML}{0E6E6B} % deep teal
+\hypersetup{colorlinks=true,urlcolor=accent,linkcolor=accent}
+
+\titleformat{\section}{\normalsize\bfseries\color{accent}}{}{0em}{}[\vspace{0.4ex}\rule{\textwidth}{0.8pt}]
+\titlespacing*{\section}{0pt}{0.5ex}{0.3ex}
+
+\setlist[itemize]{leftmargin=1.3em,itemsep=0.1ex,topsep=0.2ex,parsep=0pt}
+\setlist[description]{leftmargin=0pt,itemsep=0.25ex,topsep=0.3ex,parsep=0pt,font=\normalfont\bfseries}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+\raggedbottom
+
+% \job{title}{org, location}{dates}{subtitle (may be empty)}
+\newcommand{\job}[4]{%
+  \par\vspace{0.5ex}\noindent\textbf{#1} \hfill #3\\%
+  \noindent\textit{#2}%
+  \ifx&#4&\else\\[-0.2ex]\noindent{\small\textit{#4}}\fi%
+  \vspace{-0.4ex}%
+}
+
+% \school{degree}{school}{dates}{note (may be empty)}
+\newcommand{\school}[4]{%
+  \par\vspace{0.5ex}\noindent\textbf{#1} \hfill #3\\%
+  \noindent\textit{#2}%
+  \ifx&#4&\else\\[-0.2ex]\noindent{\small #4}\fi%
+  \vspace{-0.4ex}%
+}
+
+\begin{document}
+\fontsize{9}{10.3}\selectfont
+
+% ---------- Header ----------
+\begin{center}
+  {\large\bfseries ARMAN POUYAEI, PhD}\\[0.5ex]
+  {\footnotesize Princeton, NJ \enspace|\enspace (832) 633-4481 \enspace|\enspace
+  \href{mailto:arman.pouyaei@gmail.com}{arman.pouyaei@gmail.com} \enspace|\enspace
+  \href{https://linkedin.com/in/arman-pouyaei}{linkedin.com/in/arman-pouyaei}}
+\end{center}
+
+% ---------- Summary ----------
+\section*{Professional Summary}
+Senior data engineer and data scientist with 10+ years building production
+machine-learning and predictive-modeling systems on large, high-dimensional
+data. PhD-trained in statistical inference, Bayesian estimation, and
+optimization. Currently leads a global severe-storm hazard modeling program
+end to end --- AI-based weather emulation, GPU-accelerated ensemble
+forecasting, extreme value theory, physics-based transport and emission
+modeling, and forward-looking scenario design --- from solution architecture
+through production delivery. Works fluently in Python across HPC and cloud at
+petabyte scale, leads and mentors engineering teams, and translates technical
+findings into plain-language recommendations through visualization,
+prototypes, and executive briefings. 30+ peer-reviewed publications.
+
+% ---------- Skills ----------
+\section*{Technical Skills}
+\begin{description}
+  \item[Statistical \& Predictive Modeling:] Regression, classification,
+    clustering, Bayesian inference and state estimation, time-series
+    forecasting, extreme value theory (GEV/GPD, peaks-over-threshold) and
+    return-period estimation, probabilistic and ensemble forecasting,
+    uncertainty quantification, hypothesis testing, constrained optimization.
+  \item[Machine Learning \& AI:] PyTorch, JAX, scikit-learn,
+    TensorFlow; XGBoost, Random Forest, CNN/UNet, GNN, PINN, neural operators
+    and diffusion-based generative models; AI weather emulators; multi-GPU
+    distributed training and inference; LLM and NLP tooling, agentic and
+    retrieval workflows.
+  \item[Physical \& Numerical Modeling:] Lagrangian particle transport
+    and dispersion models, physics-based emission schemes, data assimilation
+    (3DVAR, EnKF), climate and atmospheric-chemistry models, downscaling, bias
+    correction, scenario and climate-pathway analysis.
+  \item[Programming \& Data:] Python (NumPy, pandas, Xarray, Dask,
+    GeoPandas), R, SQL, Bash, Fortran; Zarr, Parquet, NetCDF, HDF5; relational
+    and columnar stores; schema, warehouse, and data-model design.
+  \item[Engineering \& Scale:] AWS (Batch, S3, Lambda), Docker,
+    SLURM/MPI, CUDA and multi-GPU clusters; production ETL, automated QA/QC,
+    anomaly detection, reproducible pipelines.
+  \item[Visualization \& Communication:] Tableau, Matplotlib, Plotly,
+    Seaborn, interactive HTML dashboards, PowerPoint; prototypes and
+    demonstrations built for non-technical stakeholders and executive
+    audiences.
+\end{description}
+
+% ---------- Experience ----------
+\section*{Professional Experience}
+
+\job{Senior Data Engineer (Data Science)}{MSCI Inc., New York, NY}{Aug 2026 -- Present}{Severe-storm hazard modeling, predictive analytics, and AI platform engineering for climate risk. (First Street acquired by MSCI, August 2026.)}
+\begin{itemize}
+  \item Lead the severe-storm modeling program end to end --- blizzard, dust
+    storm, and sandstorm hazards --- owning solution architecture, model and
+    tool development, GPU-accelerated training and inference, validation, and
+    production delivery.
+  \item Built a global ensemble forecasting capability on AI-based weather
+    emulators, generating large perturbed-initial-condition ensembles on GPUs
+    at a fraction of the cost of physics-based numerical weather prediction,
+    then post-processing members into calibrated hazard probabilities and
+    spread-based confidence measures.
+  \item Applied extreme value theory (GEV and generalized Pareto,
+    peaks-over-threshold) to fit the tails of storm severity distributions and
+    derive return-period estimates well beyond the observational record, with
+    bootstrapped confidence intervals attached to every return level.
+  \item Designed a forward-looking scenario framework that projects hazard
+    frequency and severity onto future climate pathways, so present-day risk
+    and mid- to late-century outcomes can be compared on a consistent,
+    auditable basis.
+  \item Developed a Lagrangian particle transport model coupled to a
+    physics-based dust and sand emission scheme --- friction-velocity
+    thresholds with soil, vegetation, and land-surface controls --- to
+    simulate emission, long-range transport, and deposition at the spatial
+    resolution needed for asset-level exposure.
+  \item Build, tune, and validate machine-learning models (PyTorch, JAX,
+    scikit-learn) that score risk exposure across hundreds of millions of
+    records --- owning feature engineering, training, cross-validation, and
+    production deployment end to end.
+  \item Set technical direction across the program and review engineering and
+    analytical work; keep the team aligned to milestones through regular
+    check-ins with engineers and analysts, and report delivery status to
+    senior leadership.
+  \item Develop AI and LLM-based tooling and agentic workflows that automate
+    model diagnostics, output review, and documentation; partner with
+    product, research, and client-facing teams to turn open-ended business
+    questions into measurable requirements and tangible prototypes.
+\end{itemize}
+
+\job{Data Engineer / Research Scientist}{First Street, New York, NY}{May 2025 -- Aug 2026}{Machine learning and data pipeline engineering for global climate risk analytics.}
+\begin{itemize}
+  \item Designed and deployed end-to-end ML workflows covering data
+    preparation, training, validation, and iterative QA/QC for global
+    predictive models, including tuning and scaling UNet-based emulators.
+  \item Built an automated quality-control and anomaly-detection framework
+    that evaluates model outputs against independent benchmarks and surfaces
+    failures through dashboards --- cutting review time during global model
+    release cycles.
+  \item Architected containerized ETL on AWS Batch serving petabyte-scale
+    datasets (Zarr, Parquet, NetCDF) to downstream analytics and client
+    products.
+  \item Converted exploratory notebook research into production-grade,
+    reproducible pipelines on SLURM clusters and AWS, working alongside the
+    science team to preserve analytical intent.
+\end{itemize}
+
+\job{Postdoctoral Research Associate}{NOAA GFDL / Princeton University}{Mar 2023 -- May 2025}{Cooperative Institute for Modeling the Earth System (CIMES), Princeton University.}
+\begin{itemize}
+  \item Applied statistical and machine-learning analysis to decadal,
+    high-dimensional datasets to isolate driver--response relationships hidden
+    in noisy signals; findings published in \textit{Geophysical Research
+    Letters}.
+  \item Led a modeling workstream spanning four research groups and 8+
+    scientists --- defining scope, sequencing deliverables, and keeping
+    distributed contributors aligned to a shared roadmap.
+  \item Built and benchmarked predictive model components against
+    independent observational datasets, documented uncertainty for downstream
+    users, mentored graduate students, and delivered invited talks at NASA
+    GISS and AGU.
+\end{itemize}
+
+\job{Postdoctoral Research Fellow}{University of Houston}{Sep 2022 -- Feb 2023}{Bayesian inference, inverse modeling, and predictive analytics.}
+\begin{itemize}
+  \item Designed a 3DVAR variational inference framework that assimilates
+    high-volume observational streams into predictive models --- a
+    large-scale optimization and state-estimation problem over sparse,
+    heterogeneous data.
+  \item Constrained model uncertainty by fusing satellite and in-situ
+    measurement sources; authored competitive research proposals to DOE,
+    NOAA, NASA, and NSF and supervised undergraduate and graduate
+    researchers.
+\end{itemize}
+
+\job{Graduate Research Assistant}{University of Houston}{2018 -- 2022}{Air Quality Forecasting and Modeling Lab --- statistical modeling, data fusion, and satellite data analysis.}
+\begin{itemize}
+  \item Built and open-sourced a Lagrangian particle-trajectory framework
+    (C-TRAIL v1.0) that traces how quantities move through large
+    spatiotemporal simulations and attributes downstream outcomes to specific
+    upstream sources; adopted by external research groups and extended into a
+    diagnostic tool that ranks each source region's contribution during
+    extreme episodes.
+  \item Developed data-fusion operators that reconcile heterogeneous
+    observational sources --- satellite, ground-network, and aircraft
+    measurements with differing resolution, bias, and coverage --- within a
+    Bayesian assimilation framework, producing constrained estimates from
+    sparse and inconsistent inputs.
+  \item Designed a physics-based scheme for processes below the model's
+    resolved grid scale, measurably improving predictive skill (JAMES 2021),
+    and co-developed deep-learning surrogates, spatial-imputation models, and
+    super-resolution bias correction with the group's machine-learning team.
+\end{itemize}
+
+\job{Graduate Research Assistant}{University of Tehran}{2014 -- 2017}{}
+\begin{itemize}
+  \item Designed optimization and predictive-modeling frameworks for
+    renewable energy systems; published in \textit{Energy Conversion and
+    Management} and IEEE.
+\end{itemize}
+
+% ---------- Education ----------
+\section*{Education}
+
+\school{Ph.D., Atmospheric Science}{University of Houston, TX}{2018 -- 2022}{Quantitative focus: Bayesian data assimilation, numerical modeling, statistical analysis of large observational datasets.}
+\school{M.Sc., Renewable Energies Engineering}{University of Tehran, Iran}{2013 -- 2016}{}
+\school{B.Sc., Mechanical Engineering}{University of Shiraz, Iran}{2008 -- 2012}{}
+
+\par\vspace{0.6ex}
+\noindent\textbf{Awards:} Outstanding Graduate Work Scholarship, University of Houston (2021 \& 2022); full scholarships for M.Sc.\ and B.Sc.
+
+% ---------- Leadership ----------
+\section*{Leadership, Mentoring \& External Engagement}
+\begin{itemize}
+  \item \textbf{Team \& Project Leadership:} Coordinate cross-functional
+    delivery at MSCI and First Street through regular working sessions where
+    engineers and analysts walk through progress and surface blockers
+    together. At Princeton/NOAA GFDL, directed a modeling workstream across
+    four research groups and 8+ scientists, with collaborators at NASA, NCAR,
+    Brookhaven, and PNNL.
+  \item \textbf{Mentoring, Teaching \& Funding:} Mentored undergraduate and
+    graduate researchers at Princeton/NOAA GFDL and the University of
+    Houston, plus two international high school students through the
+    Collegiate Mentorship Program (2024). Teaching assistant for Dynamic
+    Meteorology and Principles of Atmospheric Science. Authored proposals to
+    DOE, NOAA, NASA, and NSF.
+  \item \textbf{Communicating to Mixed Audiences:} Invited speaker, NASA GISS
+    Seminar Series (2025) and NOAA GFDL Seminar Series (2024). Conference
+    presenter at AGU Fall Meetings (2021--2024), AMS Annual Meeting (2024),
+    and CMAS (2021).
+  \item \textbf{Professional Service \& Outreach:} Lead convener, AGU 2026
+    session on aerosol impacts on climate, air quality, and health; convener
+    of three AGU sessions across 2024 and 2025. Peer reviewer for
+    JGR-Atmospheres, \textit{Atmospheric Environment}, \textit{Scientific
+    Reports}, and six additional journals. Organizing committee, Spring Into
+    Science science outreach, Princeton University (2024).
+\end{itemize}
+
+% ---------- Publications ----------
+\section*{Selected First-Author Publications (7 first-author of 30+ total)}
+\begin{itemize}
+  \item Pouyaei, A.\ et al.\ (2026, under review). Linking Prognostic Fire
+    Emissions to Atmospheric Chemistry and Aerosols in GFDL's Atmospheric and
+    Land Model version 4.2 (AM4.2/LM4.2). \textit{J.\ Advances in Modeling
+    Earth Systems.} \url{https://doi.org/10.22541/essoar.15005375/v1}
+  \item Pouyaei, A.\ et al.\ (2025). ENSO-driven Variability in Ozone Sources
+    and Its Impact on Tropospheric Ozone Radiative Forcing.
+    \textit{Geophysical Research Letters}, 52(15).
+  \item Pouyaei, A.\ et al.\ (2025). Implementation of Dynamic Fire Injection
+    Height in GFDL's AM4.0: Impacts on Aerosol Profiles and Radiation.
+    \textit{J.\ Advances in Modeling Earth Systems}, 17(4).
+  \item Pouyaei, A.\ et al.\ (2023). Downwind Ozone Changes of the 2019
+    Williams Flats Wildfire: WRF-Chem/DART Assimilation of OMI NO$_2$, HCHO,
+    and MODIS AOD. \textit{J.\ Geophysical Research: Atmospheres}, 128(9).
+  \item Pouyaei, A.\ et al.\ (2020). C-TRAIL Model v1.0 derived from CMAQ
+    Model v5.2. \textit{Geoscientific Model Development}, 13(8).
+\end{itemize}
+
+\end{document}
