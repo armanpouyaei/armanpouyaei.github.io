@@ -155,7 +155,11 @@
       if (m.type === 'progress' && m.label) {
         setHTML(esc(m.label) + ' <span class="arrow" aria-hidden="true">…</span>');
       } else if (m.type === 'done' && m.pdf) {
-        finishOk(m.pdf);
+        // The worker transfers the PDF as an ArrayBuffer; normalize to
+        // Uint8Array for the base64 encoder below (ArrayBuffer has no
+        // .subarray/.length, which previously produced an empty string).
+        var bytes = m.pdf instanceof Uint8Array ? m.pdf : new Uint8Array(m.pdf);
+        finishOk(bytes);
       } else if (m.type === 'error') {
         finishFail(m.message || 'unknown error');
       }

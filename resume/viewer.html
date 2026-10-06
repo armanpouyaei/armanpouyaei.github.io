@@ -179,6 +179,7 @@
         var b64 = null;
         try { b64 = localStorage.getItem(key); } catch (e) { /* ignore */ }
         if (b64) { render(b64ToBytes(b64)); return; }
+        if (b64 === '') { showError('Received an empty PDF payload. Please try again.'); return; }
         setTimeout(poll, 800);
       }
 
