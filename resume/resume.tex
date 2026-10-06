@@ -1,6 +1,7 @@
 % Arman Pouyaei — Resume
-% Compiled in-browser (SwiftLaTeX/pdfTeX) from this single source file.
-% Keep packages to the standard set so the web renderer can fetch them on demand.
+% Single-file LaTeX source. The portfolio site compiles this in the visitor's
+% browser (Tectonic/XeTeX via WebAssembly) when they click "Download résumé".
+% Section titles: minimal professional style (bold, no rule, no color).
 \documentclass[10pt]{article}
 
 \usepackage[utf8]{inputenc} % no-op under XeTeX (UTF-8 is native there)
@@ -19,8 +20,12 @@
 \definecolor{accent}{HTML}{0E6E6B} % deep teal
 \hypersetup{colorlinks=true,urlcolor=accent,linkcolor=accent}
 
-\titleformat{\section}{\normalsize\bfseries\color{accent}}{}{0em}{}[\vspace{0.4ex}\rule{\textwidth}{0.8pt}]
-\titlespacing*{\section}{0pt}{0.5ex}{0.3ex}
+% Section titles: minimal professional style — bold, ragged right,
+% no rule, no color. Maximum ATS-friendliness.
+\titleformat{\section}{
+  \vspace{-2pt}\raggedright\large\bfseries
+}{}{0em}{}[\vspace{-4pt}]
+\titlespacing*{\section}{0pt}{10pt}{6pt}
 
 \setlist[itemize]{leftmargin=1.3em,itemsep=0.1ex,topsep=0.2ex,parsep=0pt}
 \setlist[description]{leftmargin=0pt,itemsep=0.25ex,topsep=0.3ex,parsep=0pt,font=\normalfont\bfseries}
