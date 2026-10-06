@@ -1,0 +1,57 @@
+name: Build résumé PDF
+
+# Compiles resume/resume.tex to PDF and commits the result back to the repo,
+# so the site's "Download résumé" button serves a ready-made file.
+# Edit the .tex, merge, and CI takes care of the rest.
+
+on:
+  push:
+    branches: [main]
+    paths:
+
+'resume/resume.tex'
+'.github/workflows/build-resume.yml'
+  pull_request:
+    branches: [main]
+    paths:
+
+'resume/resume.tex'
+'.github/workflows/build-resume.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+name: Check out repository
+        uses: actions/checkout@v4
+
+
+name: Compile resume.tex with XeLaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: resume
+          root_file: resume.tex
+          latexmk_use_xelatex: true
+
+
+name: Name the built PDF
+        run: mv resume/resume.pdf resume/Arman_Pouyaei_Resume.pdf
+
+
+name: Commit the built PDF back to the repo
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resume/Arman_Pouyaei_Resume.pdf
+          if git diff --cached --quiet; then
+            echo "PDF unchanged — nothing to commit."
+            exit 0
+          fi
+          git commit -m "Build résumé PDF from resume.tex [skip ci]"
+          git push
