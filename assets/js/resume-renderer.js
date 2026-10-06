@@ -2,13 +2,19 @@
  *
  * On click it fetches resume/resume.tex, compiles it to PDF entirely in the
  * browser (via assets/js/resume-worker.js, which runs the GlyphTeX/Tectonic
- * WebAssembly engine off the main thread), and opens the resulting PDF in a
- * new tab. Without JavaScript the link degrades to downloading resume.tex.
+ * WebAssembly engine off the main thread), and shows the PDF in a new tab.
+ *
+ * The new tab opens resume/viewer.html (a real https URL — this matters on
+ * iOS, which refuses to navigate to blob: URLs with "address is invalid").
+ * The compiled PDF bytes are handed to the viewer tab through localStorage;
+ * the viewer renders them with PDF.js, so no blob: navigation is needed
+ * anywhere. Without JavaScript the link degrades to downloading resume.tex.
  */
 (function () {
   'use strict';
 
   var TEX_URL = 'resume/resume.tex';
+  var VIEWER_URL = 'resume/viewer.html';
   var WORKER_URL = 'assets/js/resume-worker.js';
 
   var btn = document.getElementById('resume-download');
@@ -24,6 +30,25 @@
     return String(s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
+  }
+
+  function storageOK() {
+    try {
+      localStorage.setItem('__resume_probe', '1');
+      localStorage.removeItem('__resume_probe');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function bytesToB64(bytes) {
+    var bin = '';
+    var CHUNK = 8192;
+    for (var i = 0; i < bytes.length; i += CHUNK) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+    }
+    return btoa(bin);
   }
 
   function getWorker() {
@@ -47,30 +72,29 @@
     window.setTimeout(warm, 6000);
   }
 
-  function loadingPage() {
-    return '<!doctype html><html><head><meta charset="utf-8">' +
-      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>Compiling résumé…</title>' +
-      '<style>html,body{height:100%}body{background:#050b0d;color:#9bb2ad;' +
-      'font-family:ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;' +
-      'align-items:center;justify-content:center;margin:0;text-align:center}' +
-      'b{display:block;color:#62e6e1;font-size:15px;letter-spacing:.08em;margin-bottom:10px}' +
-      'span{font-size:12px}</style></head><body><div>' +
-      '<b>COMPILING RÉSUMÉ</b><span>Rendering resume.tex → PDF in your browser…</span>' +
-      '</div></body></html>';
-  }
-
   btn.addEventListener('click', function (ev) {
     ev.preventDefault();
     if (busy) return;
     busy = true;
 
+    var useViewer = storageOK();
+    var id = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    var key = 'resume-pdf-' + id;
+
     // Open the tab synchronously inside the click handler: popup blockers
-    // cannot intercept it, and we navigate it to the PDF when ready.
+    // cannot intercept it. The viewer URL is a real https address, which is
+    // required on iOS (blob: URLs are rejected there as invalid addresses).
     var tab = null;
-    try { tab = window.open('', '_blank'); } catch (e) { tab = null; }
-    if (tab) {
-      try { tab.document.write(loadingPage()); tab.document.close(); } catch (e) { /* ignore */ }
+    try {
+      tab = window.open(useViewer ? VIEWER_URL + '#' + id : '', '_blank');
+    } catch (e) {
+      tab = null;
+    }
+    if (!tab) {
+      busy = false;
+      setHTML('Popup blocked — allow popups and retry');
+      window.setTimeout(function () { setHTML(originalHTML); }, 3500);
+      return;
     }
 
     setHTML('Compiling résumé… <span class="arrow" aria-hidden="true">…</span>');
@@ -79,14 +103,18 @@
     try {
       w = getWorker();
     } catch (e) {
-      finishFail(tab, 'Web Workers are not available in this browser.');
+      finishFail('Web Workers are not available in this browser.');
       return;
     }
 
-    function finishFail(tabRef, message) {
+    function finishFail(message) {
       busy = false;
       if (w) w.removeEventListener('message', onMessage);
-      if (tabRef) { try { tabRef.close(); } catch (e) { /* ignore */ } }
+      if (useViewer) {
+        try { localStorage.setItem(key + ':error', message); } catch (e) { /* ignore */ }
+      } else {
+        try { tab.close(); } catch (e) { /* ignore */ }
+      }
       if (window.console) console.error('[resume] ' + message);
       setHTML('Render failed — try again');
       window.setTimeout(function () { setHTML(originalHTML); }, 3500);
@@ -95,27 +123,29 @@
     function finishOk(pdfBytes) {
       busy = false;
       w.removeEventListener('message', onMessage);
-      var blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      var url = URL.createObjectURL(blob);
-      var opened = false;
-      if (tab) {
-        try { tab.location.href = url; opened = true; } catch (e) { /* fall through */ }
-      }
-      if (!opened) {
-        try { opened = !!window.open(url, '_blank'); } catch (e) { opened = false; }
-      }
-      if (!opened && tab) { try { tab.close(); } catch (e) { /* ignore */ } }
-      if (opened) {
+      if (useViewer) {
+        // Hand the bytes to the viewer tab via localStorage; it renders them
+        // with PDF.js. No blob: navigation involved, so this works on iOS.
+        try {
+          localStorage.setItem(key, bytesToB64(pdfBytes));
+        } catch (e) {
+          finishFail('Could not hand the PDF to the viewer tab: ' + e.message);
+          return;
+        }
         setHTML('Opened in new tab <span class="arrow" aria-hidden="true">↗</span>');
       } else {
-        // Last resort: trigger a download instead of losing the PDF.
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'Arman_Pouyaei_Resume.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setHTML('Downloaded instead <span class="arrow" aria-hidden="true">↓</span>');
+        // Fallback for browsers without localStorage (desktop): classic blob URL.
+        var blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        var url = URL.createObjectURL(blob);
+        var opened = false;
+        try { tab.location.href = url; opened = true; } catch (e) { /* fall through */ }
+        if (!opened) {
+          try { opened = !!window.open(url, '_blank'); } catch (e) { opened = false; }
+        }
+        if (!opened) { try { tab.close(); } catch (e) { /* ignore */ } }
+        setHTML(opened
+          ? 'Opened in new tab <span class="arrow" aria-hidden="true">↗</span>'
+          : 'Render failed — try again');
       }
       window.setTimeout(function () { setHTML(originalHTML); }, 3000);
     }
@@ -127,7 +157,7 @@
       } else if (m.type === 'done' && m.pdf) {
         finishOk(m.pdf);
       } else if (m.type === 'error') {
-        finishFail(tab, m.message || 'unknown error');
+        finishFail(m.message || 'unknown error');
       }
     }
     w.addEventListener('message', onMessage);

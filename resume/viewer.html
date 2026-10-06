@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Résumé — Arman Pouyaei</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050b0d;
+      --surface: #0b1518;
+      --ink: #eefaf7;
+      --muted: #9bb2ad;
+      --line: #22383c;
+      --cyan: #62e6e1;
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Manrope", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+      background: rgba(5, 11, 13, .92);
+      border-bottom: 1px solid var(--line);
+      font: 500 11px/1 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .bar .title { color: var(--ink); }
+    .bar .spacer { flex: 1; }
+    .dl {
+      display: inline-block;
+      padding: 10px 16px;
+      border: 1px solid var(--cyan);
+      border-radius: 999px;
+      color: var(--cyan);
+      text-decoration: none;
+      letter-spacing: .08em;
+    }
+    .dl:hover { background: rgba(98, 230, 225, .1); }
+    .dl[hidden] { display: none; }
+    #status {
+      padding: 48px 20px;
+      text-align: center;
+      font: 400 13px/1.8 var(--mono);
+      color: var(--muted);
+    }
+    #status b {
+      display: block;
+      color: var(--cyan);
+      font-size: 14px;
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+    }
+    #status.error { color: #ff9d8a; }
+    #pages {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 8px 16px 48px;
+    }
+    #pages canvas {
+      width: min(820px, 100%);
+      height: auto;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .5);
+    }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <span class="title">Arman Pouyaei — Résumé</span>
+    <span class="spacer"></span>
+    <a class="dl" id="dl" href="#" download="Arman_Pouyaei_Resume.pdf" hidden>Download PDF</a>
+  </div>
+  <div id="status"><b>COMPILING RÉSUMÉ</b>Rendering resume.tex → PDF in your browser…</div>
+  <div id="pages"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var id = (location.hash || '').replace(/^#/, '');
+      var key = 'resume-pdf-' + id;
+      var errKey = key + ':error';
+      var statusEl = document.getElementById('status');
+      var pagesEl = document.getElementById('pages');
+      var dlEl = document.getElementById('dl');
+      var finished = false;
+
+      function showError(msg) {
+        finished = true;
+        statusEl.className = 'error';
+        statusEl.innerHTML = '<b>RENDER FAILED</b>' + escapeHtml(msg);
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+
+      function b64ToBytes(b64) {
+        var bin = atob(b64);
+        var bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+      }
+
+      function render(bytes) {
+        finished = true;
+        try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
+        try { localStorage.removeItem(errKey); } catch (e) { /* ignore */ }
+
+        var blob = new Blob([bytes], { type: 'application/pdf' });
+        dlEl.href = URL.createObjectURL(blob);
+        dlEl.hidden = false;
+
+        if (typeof pdfjsLib === 'undefined') {
+          showError('PDF renderer failed to load. Use the Download PDF button to get the file.');
+          return;
+        }
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.getDocument({ data: bytes }).promise.then(function (pdf) {
+          statusEl.style.display = 'none';
+          var chain = Promise.resolve();
+          for (var n = 1; n <= pdf.numPages; n++) {
+            (function (pageNum) {
+              chain = chain.then(function () { return pdf.getPage(pageNum); }).then(renderPage);
+            })(n);
+          }
+          chain.catch(function (err) { showError('Could not render pages: ' + err.message); });
+        }).catch(function (err) {
+          showError('Could not open the PDF: ' + (err && err.message || err));
+        });
+      }
+
+      function renderPage(page) {
+        var maxWidth = Math.min(820, pagesEl.clientWidth - 32);
+        var base = page.getViewport({ scale: 1 });
+        var scale = Math.min(2, maxWidth / base.width);
+        var viewport = page.getViewport({ scale: scale });
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        pagesEl.appendChild(canvas);
+        return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+      }
+
+      function checkError() {
+        try {
+          var err = localStorage.getItem(errKey);
+          if (err) { showError(err); return true; }
+        } catch (e) { /* ignore */ }
+        return false;
+      }
+
+      function poll() {
+        if (finished) return;
+        if (checkError()) return;
+        var b64 = null;
+        try { b64 = localStorage.getItem(key); } catch (e) { /* ignore */ }
+        if (b64) { render(b64ToBytes(b64)); return; }
+        setTimeout(poll, 800);
+      }
+
+      if (!id) {
+        showError('No résumé data found. Please use the Download résumé button on the portfolio site.');
+        return;
+      }
+      window.addEventListener('storage', function (e) {
+        if (finished) return;
+        if (e.key === errKey && e.newValue) { showError(e.newValue); }
+        else if (e.key === key && e.newValue) { render(b64ToBytes(e.newValue)); }
+      });
+      // Safety net: give up after 3 minutes.
+      setTimeout(function () {
+        if (!finished) showError('Timed out waiting for the compiled PDF. Please try again.');
+      }, 180000);
+      poll();
+    })();
+  </script>
+</body>
+</html>
