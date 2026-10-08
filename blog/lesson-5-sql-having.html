@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>Filtering groups with HAVING — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 5: WHERE filters rows before grouping, HAVING filters groups after aggregation. Why WHERE COUNT(*) is invalid." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050b0d; --surface:#0b1518; --surface-2:#112226;
+      --ink:#eefaf7; --muted:#9bb2ad; --line:#22383c;
+      --cyan:#62e6e1; --lime:#b9ef6b; --amber:#ffad69;
+      --grid:rgba(179,229,224,.052);
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --sans:"Manrope",system-ui,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;font-family:var(--sans);color:var(--ink);
+      background:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),var(--bg);
+      background-size:52px 52px;-webkit-font-smoothing:antialiased;}
+    .topbar{min-height:74px;display:flex;align-items:center;justify-content:flex-end;gap:28px;
+      border-bottom:1px solid var(--line);font:500 11px/1 var(--mono);letter-spacing:.06em;
+      text-transform:uppercase;padding:0 32px;}
+    .topbar .status{margin-right:auto;display:flex;align-items:center;gap:10px;color:var(--muted);}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);}
+    .topbar a{text-decoration:none;color:var(--muted);transition:color .2s ease;}
+    .topbar a:hover,.topbar a.active{color:var(--cyan);}
+    .wrap{max-width:780px;margin:0 auto;padding:56px 24px 100px;}
+    .kicker{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;}
+    h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 24px;letter-spacing:-.01em;}
+    article p,article li{line-height:1.75;color:#cfe3dd;font-size:16px;}
+    article p{margin:0 0 18px;}
+    article h2{font-size:23px;margin:44px 0 14px;color:var(--ink);}
+    pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+      overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 22px;}
+    p code,li code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);color:var(--cyan);
+      padding:2px 7px;border-radius:6px;white-space:nowrap;}
+    .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
+      padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
+    .callout p{margin:0;font-size:15px;}
+    .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
+      text-transform:uppercase;color:var(--cyan);text-decoration:none;}
+    a{color:var(--cyan);}
+    footer{border-top:1px solid var(--line);padding:28px 32px;color:var(--muted);
+      font:400 12px/1.6 var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    footer a{color:var(--cyan);text-decoration:none;}
+    @media (max-width:640px){ .topbar{gap:18px;padding:0 18px;} .topbar .status{display:none;} }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Primary navigation">
+    <div class="status"><span class="status-dot" aria-hidden="true"></span>Senior data engineer · NYC</div>
+    <a href="../index.html#impact">Impact</a>
+    <a href="../index.html#experience">Experience</a>
+    <a href="../index.html#capabilities">Capabilities</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../blog.html" class="active">Blog</a>
+  </nav>
+
+  <main class="wrap">
+    <article>
+      <div class="kicker">Lesson 5 &nbsp;·&nbsp; Oct 8, 2026 &nbsp;·&nbsp; SQL</div>
+      <h1>Filtering groups with HAVING</h1>
+
+      <p><code>WHERE</code> filters <strong>rows</strong> before grouping. But what if you want to filter the <strong>groups</strong> &mdash; keep only countries with at least 5 stations? <code>WHERE</code> can't see aggregates (<code>WHERE COUNT(*) &gt;= 5</code> is invalid SQL), because at the time <code>WHERE</code> runs, the groups don't exist yet. That's exactly why <code>HAVING</code> exists.</p>
+
+      <h2>The code</h2>
+      <pre>SELECT country, COUNT(*) AS num_stations
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country
+HAVING COUNT(*) &gt;= 5;</pre>
+      <p>The full pipeline, in execution order:</p>
+      <ol>
+        <li><code>WHERE</code> &mdash; filter rows (stations west of 100&deg;W).</li>
+        <li><code>GROUP BY</code> &mdash; bucket by country, count each.</li>
+        <li><code>HAVING</code> &mdash; keep only groups with 5+ stations.</li>
+      </ol>
+      <p>The mnemonic: <code>WHERE</code> filters what goes <em>into</em> the groups, <code>HAVING</code> filters what comes <em>out</em>.</p>
+
+      <h2>In practice</h2>
+      <p>Any rollup that drops sparse categories &mdash; countries with fewer than N stations, products with fewer than N sales, days with fewer than N events &mdash; is <code>GROUP BY</code> + <code>HAVING</code>. Without it you'd pull the full breakdown into pandas and filter there, which is slower and noisier.</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> <code>df[df.lon &lt; -100].groupby('country').filter(lambda g: len(g) &gt;= 5)</code>. Pandas' <code>.filter()</code> after <code>groupby</code> is <code>HAVING</code> &mdash; filtering groups, not rows.</p>
+      </div>
+
+      <h2>Try it</h2>
+      <p>Predict which countries survive the query above on a small sample table. Then change <code>&gt;= 5</code> to <code>&lt; 5</code> and predict what changes before checking &mdash; it's the complement set, but say <em>why</em> in terms of the pipeline.</p>
+
+      <h2>Further reading</h2>
+      <p><a href="https://brainstation.io/learn/sql/having" target="_blank" rel="noopener">SQL HAVING clause &mdash; BrainStation</a></p>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Arman Pouyaei</span>
+    <a href="../index.html">&larr; Back to portfolio</a>
+  </footer>
+</body>
+</html>
