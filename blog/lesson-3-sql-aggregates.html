@@ -52,6 +52,17 @@
     .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
       padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
     .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
     .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
       text-transform:uppercase;color:var(--cyan);text-decoration:none;}
     a{color:var(--cyan);}
@@ -73,7 +84,8 @@
 
   <main class="wrap">
     <article>
-      <div class="kicker">Lesson 3 &nbsp;·&nbsp; Oct 6, 2026 &nbsp;·&nbsp; SQL</div>
+      <div class="kicker">Lesson 3 &nbsp;·&nbsp; Oct 6, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
       <h1>Summarizing data with COUNT, SUM, and AVG</h1>
 
       <p>So far every query has returned rows. <strong>Aggregate functions</strong> do something different: they collapse many rows into a single summary number. How many? How much? On average? That's the math behind nearly every dashboard KPI.</p>
@@ -97,11 +109,18 @@ WHERE country = 'USA';</pre>
         <p><strong>Python bridge:</strong> <code>AVG(temperature)</code> is <code>df['temperature'].mean()</code>, and <code>COUNT(*)</code> is <code>len(df)</code>. The difference: SQL computes the summary <em>inside the database</em>, before anything gets pulled into memory.</p>
       </div>
 
-      <h2>Try it</h2>
-      <p>Predict the single-row result of the query above. Then swap <code>AVG</code> for <code>MAX</code> and predict what changes &mdash; same shape, different summary.</p>
-
       <h2>Further reading</h2>
       <p><a href="https://swcarpentry.github.io/sql-novice-survey/06-agg.html" target="_blank" rel="noopener">Aggregation &mdash; Software Carpentry SQL lesson</a></p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> predict the shape and content of the result of the query above. Then swap <code>AVG</code> for <code>MAX</code> &mdash; what changes?</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <p>Exactly <strong>one row</strong> with two columns: <code>num_stations</code> (the count of US weather stations) and <code>avg_temp</code> (their mean temperature). The whole table collapses into a single summary row.</p>
+          <p>With <code>MAX</code>: still one row, still two columns &mdash; <code>num_stations</code> is unchanged, and the second column becomes the <em>highest</em> recorded temperature instead of the average. Same shape, different summary.</p>
+        </div>
+      </details>
 
       <a class="back" href="../blog.html">&larr; All posts</a>
     </article>
