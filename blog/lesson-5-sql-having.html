@@ -52,6 +52,21 @@
     .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
       padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
     .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
+    table.sample{width:100%;border-collapse:collapse;margin:0 0 22px;font:13px/1.6 var(--mono);background:var(--surface);border:1px solid var(--line);}
+    table.sample th{text-align:left;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:11px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    table.sample td{padding:10px 16px;border-bottom:1px solid var(--line);color:var(--ink);}
+    table.sample tr:last-child td{border-bottom:none;}
     .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
       text-transform:uppercase;color:var(--cyan);text-decoration:none;}
     a{color:var(--cyan);}
@@ -73,7 +88,8 @@
 
   <main class="wrap">
     <article>
-      <div class="kicker">Lesson 5 &nbsp;·&nbsp; Oct 8, 2026 &nbsp;·&nbsp; SQL</div>
+      <div class="kicker">Lesson 5 &nbsp;·&nbsp; Oct 8, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
       <h1>Filtering groups with HAVING</h1>
 
       <p><code>WHERE</code> filters <strong>rows</strong> before grouping. But what if you want to filter the <strong>groups</strong> &mdash; keep only countries with at least 5 stations? <code>WHERE</code> can't see aggregates (<code>WHERE COUNT(*) &gt;= 5</code> is invalid SQL), because at the time <code>WHERE</code> runs, the groups don't exist yet. That's exactly why <code>HAVING</code> exists.</p>
@@ -99,11 +115,35 @@ HAVING COUNT(*) &gt;= 5;</pre>
         <p><strong>Python bridge:</strong> <code>df[df.lon &lt; -100].groupby('country').filter(lambda g: len(g) &gt;= 5)</code>. Pandas' <code>.filter()</code> after <code>groupby</code> is <code>HAVING</code> &mdash; filtering groups, not rows.</p>
       </div>
 
-      <h2>Try it</h2>
-      <p>Predict which countries survive the query above on a small sample table. Then change <code>&gt;= 5</code> to <code>&lt; 5</code> and predict what changes before checking &mdash; it's the complement set, but say <em>why</em> in terms of the pipeline.</p>
-
       <h2>Further reading</h2>
       <p><a href="https://brainstation.io/learn/sql/having" target="_blank" rel="noopener">SQL HAVING clause &mdash; BrainStation</a></p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> using this sample of <code>weather_stations</code>, predict which countries survive the query above. Then change <code>&gt;= 5</code> to <code>&lt; 5</code> &mdash; what changes, and why in terms of the pipeline?</p>
+      <table class="sample">
+        <tr><th>country</th><th>lon</th></tr>
+        <tr><td>USA</td><td>-110.2</td></tr>
+        <tr><td>USA</td><td>-105.5</td></tr>
+        <tr><td>USA</td><td>-115.0</td></tr>
+        <tr><td>USA</td><td>-102.3</td></tr>
+        <tr><td>USA</td><td>-118.7</td></tr>
+        <tr><td>USA</td><td>-108.9</td></tr>
+        <tr><td>Canada</td><td>-120.0</td></tr>
+        <tr><td>Canada</td><td>-125.4</td></tr>
+        <tr><td>Canada</td><td>-110.8</td></tr>
+        <tr><td>Mexico</td><td>-99.5</td></tr>
+        <tr><td>Mexico</td><td>-98.2</td></tr>
+        <tr><td>Mexico</td><td>-97.0</td></tr>
+        <tr><td>Mexico</td><td>-99.0</td></tr>
+        <tr><td>Mexico</td><td>-96.5</td></tr>
+      </table>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <p>Only the <strong>USA</strong> survives &mdash; its 6 stations satisfy <code>COUNT(*) &gt;= 5</code>. Canada forms a group of 3 but <code>HAVING</code> drops it. Mexico's 5 rows never reach grouping at all: every one fails the <code>WHERE lon &lt; -100.0</code> filter first.</p>
+          <p>With <code>&lt; 5</code>: <strong>Canada</strong> survives (3 &lt; 5) and the USA is dropped (6 is not &lt; 5) &mdash; the complement set of groups. That's <code>HAVING</code> re-filtering the same groups with a flipped predicate. Mexico is still gone, filtered earlier by <code>WHERE</code>.</p>
+        </div>
+      </details>
 
       <a class="back" href="../blog.html">&larr; All posts</a>
     </article>
