@@ -120,7 +120,12 @@ FROM places
 WHERE country = 'Portugal'
 ORDER BY population DESC
 LIMIT 3;</pre>
-          <p>For the 3 least populous, change <code>DESC</code> to <code>ASC</code> &mdash; everything else stays identical. The sort direction is the only thing that flips.</p>
+          <p>For the 3 least populous, change <code>DESC</code> to <code>ASC</code> &mdash; everything else stays identical:</p>
+          <pre>SELECT name, country, population
+FROM places
+WHERE country = 'Portugal'
+ORDER BY population ASC
+LIMIT 3;</pre>
         </div>
       </details>
 
