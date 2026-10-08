@@ -52,6 +52,17 @@
     .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
       padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
     .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
     .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
       text-transform:uppercase;color:var(--cyan);text-decoration:none;}
     a{color:var(--cyan);}
@@ -73,7 +84,8 @@
 
   <main class="wrap">
     <article>
-      <div class="kicker">Lesson 1 &nbsp;·&nbsp; Oct 4, 2026 &nbsp;·&nbsp; SQL</div>
+      <div class="kicker">Lesson 1 &nbsp;·&nbsp; Oct 4, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
       <h1>Reading data with SELECT and WHERE</h1>
 
       <p>The first thing you do with any new table is look at it: pick the columns you care about, keep the rows you care about. In SQL that's two clauses, and they map exactly onto pandas.</p>
@@ -98,10 +110,17 @@ WHERE age &gt; 30;</pre>
       </div>
 
       <h2>Try it</h2>
-      <p>Before running anything, predict what this returns &mdash; then change the filter to <code>age &lt; 25</code> and predict again:</p>
+      <p><strong>Practice question:</strong> before running anything, predict what this returns &mdash; then change the filter to <code>age &lt; 25</code> and predict again:</p>
       <pre>SELECT name, city
 FROM customers
 WHERE age &gt; 30;</pre>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <p>The query returns the <code>name</code> and <code>city</code> columns &mdash; but only for customers older than 30. Same two columns as the <code>SELECT</code> lists, fewer rows than the full table.</p>
+          <p>With <code>age &lt; 25</code>: still <code>name</code> and <code>city</code>, now for customers younger than 25. The <code>SELECT</code> never changed, so the columns stay the same &mdash; only the <code>WHERE</code> filter changed, so a different set of rows comes back.</p>
+        </div>
+      </details>
 
       <a class="back" href="../blog.html">&larr; All posts</a>
     </article>
