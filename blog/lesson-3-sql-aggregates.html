@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>Summarizing data with COUNT, SUM, and AVG — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 3: aggregate functions collapse many rows into one summary number — the math behind every dashboard." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050b0d; --surface:#0b1518; --surface-2:#112226;
+      --ink:#eefaf7; --muted:#9bb2ad; --line:#22383c;
+      --cyan:#62e6e1; --lime:#b9ef6b; --amber:#ffad69;
+      --grid:rgba(179,229,224,.052);
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --sans:"Manrope",system-ui,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;font-family:var(--sans);color:var(--ink);
+      background:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),var(--bg);
+      background-size:52px 52px;-webkit-font-smoothing:antialiased;}
+    .topbar{min-height:74px;display:flex;align-items:center;justify-content:flex-end;gap:28px;
+      border-bottom:1px solid var(--line);font:500 11px/1 var(--mono);letter-spacing:.06em;
+      text-transform:uppercase;padding:0 32px;}
+    .topbar .status{margin-right:auto;display:flex;align-items:center;gap:10px;color:var(--muted);}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);}
+    .topbar a{text-decoration:none;color:var(--muted);transition:color .2s ease;}
+    .topbar a:hover,.topbar a.active{color:var(--cyan);}
+    .wrap{max-width:780px;margin:0 auto;padding:56px 24px 100px;}
+    .kicker{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;}
+    h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 24px;letter-spacing:-.01em;}
+    article p,article li{line-height:1.75;color:#cfe3dd;font-size:16px;}
+    article p{margin:0 0 18px;}
+    article h2{font-size:23px;margin:44px 0 14px;color:var(--ink);}
+    pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+      overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 22px;}
+    p code,li code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);color:var(--cyan);
+      padding:2px 7px;border-radius:6px;white-space:nowrap;}
+    .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
+      padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
+    .callout p{margin:0;font-size:15px;}
+    .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
+      text-transform:uppercase;color:var(--cyan);text-decoration:none;}
+    a{color:var(--cyan);}
+    footer{border-top:1px solid var(--line);padding:28px 32px;color:var(--muted);
+      font:400 12px/1.6 var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    footer a{color:var(--cyan);text-decoration:none;}
+    @media (max-width:640px){ .topbar{gap:18px;padding:0 18px;} .topbar .status{display:none;} }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Primary navigation">
+    <div class="status"><span class="status-dot" aria-hidden="true"></span>Senior data engineer · NYC</div>
+    <a href="../index.html#impact">Impact</a>
+    <a href="../index.html#experience">Experience</a>
+    <a href="../index.html#capabilities">Capabilities</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../blog.html" class="active">Blog</a>
+  </nav>
+
+  <main class="wrap">
+    <article>
+      <div class="kicker">Lesson 3 &nbsp;·&nbsp; Oct 6, 2026 &nbsp;·&nbsp; SQL</div>
+      <h1>Summarizing data with COUNT, SUM, and AVG</h1>
+
+      <p>So far every query has returned rows. <strong>Aggregate functions</strong> do something different: they collapse many rows into a single summary number. How many? How much? On average? That's the math behind nearly every dashboard KPI.</p>
+
+      <h2>The code</h2>
+      <p>A <code>weather_stations</code> table. How many US stations are there, and what's their average temperature reading?</p>
+      <pre>SELECT COUNT(*) AS num_stations,
+       AVG(temperature) AS avg_temp
+FROM weather_stations
+WHERE country = 'USA';</pre>
+      <ul>
+        <li><code>COUNT(*)</code> &mdash; how many rows (the <code>*</code> means "count rows, not values").</li>
+        <li><code>AVG(temperature)</code> &mdash; the mean of a column. <code>SUM()</code>, <code>MIN()</code>, <code>MAX()</code> work the same way.</li>
+        <li>The whole result is <strong>one row</strong>: the table got summarized away.</li>
+      </ul>
+
+      <h2>In practice</h2>
+      <p>Any time someone asks "how many customers / what's the average order value / what's total revenue," the answer is an aggregate query. They're also the cheapest possible questions to ask a database &mdash; one number back instead of a million rows over the wire.</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> <code>AVG(temperature)</code> is <code>df['temperature'].mean()</code>, and <code>COUNT(*)</code> is <code>len(df)</code>. The difference: SQL computes the summary <em>inside the database</em>, before anything gets pulled into memory.</p>
+      </div>
+
+      <h2>Try it</h2>
+      <p>Predict the single-row result of the query above. Then swap <code>AVG</code> for <code>MAX</code> and predict what changes &mdash; same shape, different summary.</p>
+
+      <h2>Further reading</h2>
+      <p><a href="https://swcarpentry.github.io/sql-novice-survey/06-agg.html" target="_blank" rel="noopener">Aggregation &mdash; Software Carpentry SQL lesson</a></p>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Arman Pouyaei</span>
+    <a href="../index.html">&larr; Back to portfolio</a>
+  </footer>
+</body>
+</html>
