@@ -52,6 +52,17 @@
     .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
       padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
     .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
     .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
       text-transform:uppercase;color:var(--cyan);text-decoration:none;}
     a{color:var(--cyan);}
@@ -73,7 +84,8 @@
 
   <main class="wrap">
     <article>
-      <div class="kicker">Lesson 2 &nbsp;·&nbsp; Oct 5, 2026 &nbsp;·&nbsp; SQL</div>
+      <div class="kicker">Lesson 2 &nbsp;·&nbsp; Oct 5, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
       <h1>Sorting and taking the top N with ORDER BY and LIMIT</h1>
 
       <p>Filtering gets you the right rows; sorting puts them in a useful order and <code>LIMIT</code> keeps just the first few. Together they're the <strong>top-N pattern</strong> &mdash; one of the most common shapes in all of SQL.</p>
@@ -99,7 +111,18 @@ LIMIT 3;</pre>
       </div>
 
       <h2>Try it</h2>
-      <p>Write the query that returns the 3 most populous places in Portugal from scratch, then flip it: the 3 <em>least</em> populous. One keyword changes.</p>
+      <p><strong>Practice question:</strong> write the query that returns the 3 most populous places in Portugal from scratch &mdash; then flip it to return the 3 <em>least</em> populous. Only one keyword changes.</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>SELECT name, country, population
+FROM places
+WHERE country = 'Portugal'
+ORDER BY population DESC
+LIMIT 3;</pre>
+          <p>For the 3 least populous, change <code>DESC</code> to <code>ASC</code> &mdash; everything else stays identical. The sort direction is the only thing that flips.</p>
+        </div>
+      </details>
 
       <a class="back" href="../blog.html">&larr; All posts</a>
     </article>
