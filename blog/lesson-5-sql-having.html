@@ -140,8 +140,26 @@ HAVING COUNT(*) &gt;= 5;</pre>
       <details class="answer">
         <summary>Show answer</summary>
         <div class="answer-body">
-          <p>Only the <strong>USA</strong> survives &mdash; its 6 stations satisfy <code>COUNT(*) &gt;= 5</code>. Canada forms a group of 3 but <code>HAVING</code> drops it. Mexico's 5 rows never reach grouping at all: every one fails the <code>WHERE lon &lt; -100.0</code> filter first.</p>
-          <p>With <code>&lt; 5</code>: <strong>Canada</strong> survives (3 &lt; 5) and the USA is dropped (6 is not &lt; 5) &mdash; the complement set of groups. That's <code>HAVING</code> re-filtering the same groups with a flipped predicate. Mexico is still gone, filtered earlier by <code>WHERE</code>.</p>
+          <pre>SELECT country, COUNT(*) AS num_stations
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country
+HAVING COUNT(*) &gt;= 5;</pre>
+          <table class="sample">
+            <tr><th>country</th><th>num_stations</th></tr>
+            <tr><td>USA</td><td>6</td></tr>
+          </table>
+          <p>Only the <strong>USA</strong> survives &mdash; its 6 stations satisfy <code>COUNT(*) &gt;= 5</code>. Canada forms a group of 3 but <code>HAVING</code> drops it. Mexico's 5 rows never reach grouping at all: every one fails the <code>WHERE</code> filter first.</p>
+          <pre>SELECT country, COUNT(*) AS num_stations
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country
+HAVING COUNT(*) &lt; 5;</pre>
+          <table class="sample">
+            <tr><th>country</th><th>num_stations</th></tr>
+            <tr><td>Canada</td><td>3</td></tr>
+          </table>
+          <p>With <code>&lt; 5</code> the complement set survives: <strong>Canada</strong> (3 &lt; 5), USA dropped. That's <code>HAVING</code> re-filtering the same groups with a flipped predicate &mdash; Mexico is still gone, filtered earlier by <code>WHERE</code>.</p>
         </div>
       </details>
 
