@@ -117,7 +117,15 @@ WHERE country = 'USA';</pre>
       <details class="answer">
         <summary>Show answer</summary>
         <div class="answer-body">
-          <p>Exactly <strong>one row</strong> with two columns: <code>num_stations</code> (the count of US weather stations) and <code>avg_temp</code> (their mean temperature). The whole table collapses into a single summary row.</p>
+          <pre>SELECT COUNT(*) AS num_stations,
+       AVG(temperature) AS avg_temp
+FROM weather_stations
+WHERE country = 'USA';</pre>
+          <p>Exactly <strong>one row</strong>: <code>num_stations</code> (the count of US weather stations) and <code>avg_temp</code> (their mean temperature). The whole table collapses into a single summary row.</p>
+          <pre>SELECT COUNT(*) AS num_stations,
+       MAX(temperature) AS max_temp
+FROM weather_stations
+WHERE country = 'USA';</pre>
           <p>With <code>MAX</code>: still one row, still two columns &mdash; <code>num_stations</code> is unchanged, and the second column becomes the <em>highest</em> recorded temperature instead of the average. Same shape, different summary.</p>
         </div>
       </details>
