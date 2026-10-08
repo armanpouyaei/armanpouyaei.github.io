@@ -117,8 +117,14 @@ WHERE age &gt; 30;</pre>
       <details class="answer">
         <summary>Show answer</summary>
         <div class="answer-body">
-          <p>The query returns the <code>name</code> and <code>city</code> columns &mdash; but only for customers older than 30. Same two columns as the <code>SELECT</code> lists, fewer rows than the full table.</p>
-          <p>With <code>age &lt; 25</code>: still <code>name</code> and <code>city</code>, now for customers younger than 25. The <code>SELECT</code> never changed, so the columns stay the same &mdash; only the <code>WHERE</code> filter changed, so a different set of rows comes back.</p>
+          <pre>SELECT name, city
+FROM customers
+WHERE age &gt; 30;</pre>
+          <p>Returns the <code>name</code> and <code>city</code> columns &mdash; but only for customers older than 30. Same two columns as the <code>SELECT</code> lists, fewer rows than the full table.</p>
+          <pre>SELECT name, city
+FROM customers
+WHERE age &lt; 25;</pre>
+          <p>Still <code>name</code> and <code>city</code>, now for customers younger than 25. The <code>SELECT</code> never changed, so the columns stay the same &mdash; only the <code>WHERE</code> filter changed, so a different set of rows comes back.</p>
         </div>
       </details>
 
