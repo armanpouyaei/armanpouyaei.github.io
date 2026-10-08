@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>One summary per group with GROUP BY — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 4: GROUP BY buckets rows and computes one aggregate per bucket — the breakdown behind every dashboard." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050b0d; --surface:#0b1518; --surface-2:#112226;
+      --ink:#eefaf7; --muted:#9bb2ad; --line:#22383c;
+      --cyan:#62e6e1; --lime:#b9ef6b; --amber:#ffad69;
+      --grid:rgba(179,229,224,.052);
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --sans:"Manrope",system-ui,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;font-family:var(--sans);color:var(--ink);
+      background:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),var(--bg);
+      background-size:52px 52px;-webkit-font-smoothing:antialiased;}
+    .topbar{min-height:74px;display:flex;align-items:center;justify-content:flex-end;gap:28px;
+      border-bottom:1px solid var(--line);font:500 11px/1 var(--mono);letter-spacing:.06em;
+      text-transform:uppercase;padding:0 32px;}
+    .topbar .status{margin-right:auto;display:flex;align-items:center;gap:10px;color:var(--muted);}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);}
+    .topbar a{text-decoration:none;color:var(--muted);transition:color .2s ease;}
+    .topbar a:hover,.topbar a.active{color:var(--cyan);}
+    .wrap{max-width:780px;margin:0 auto;padding:56px 24px 100px;}
+    .kicker{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;}
+    h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 24px;letter-spacing:-.01em;}
+    article p,article li{line-height:1.75;color:#cfe3dd;font-size:16px;}
+    article p{margin:0 0 18px;}
+    article h2{font-size:23px;margin:44px 0 14px;color:var(--ink);}
+    pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+      overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 22px;}
+    p code,li code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);color:var(--cyan);
+      padding:2px 7px;border-radius:6px;white-space:nowrap;}
+    .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
+      padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
+    .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
+    table.sample{width:100%;border-collapse:collapse;margin:0 0 22px;font:13px/1.6 var(--mono);background:var(--surface);border:1px solid var(--line);}
+    table.sample th{text-align:left;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:11px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    table.sample td{padding:10px 16px;border-bottom:1px solid var(--line);color:var(--ink);}
+    table.sample tr:last-child td{border-bottom:none;}
+    .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
+      text-transform:uppercase;color:var(--cyan);text-decoration:none;}
+    a{color:var(--cyan);}
+    footer{border-top:1px solid var(--line);padding:28px 32px;color:var(--muted);
+      font:400 12px/1.6 var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    footer a{color:var(--cyan);text-decoration:none;}
+    @media (max-width:640px){ .topbar{gap:18px;padding:0 18px;} .topbar .status{display:none;} }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Primary navigation">
+    <div class="status"><span class="status-dot" aria-hidden="true"></span>Senior data engineer · NYC</div>
+    <a href="../index.html#impact">Impact</a>
+    <a href="../index.html#experience">Experience</a>
+    <a href="../index.html#capabilities">Capabilities</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../blog.html" class="active">Blog</a>
+  </nav>
+
+  <main class="wrap">
+    <article>
+      <div class="kicker">Lesson 4 &nbsp;·&nbsp; Oct 7, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>One summary per group with GROUP BY</h1>
+
+      <p>Aggregates collapse a whole table into one number. <code>GROUP BY</code> goes one step further: it splits rows into buckets first, then computes one aggregate <em>per bucket</em>. One number per country, per day, per category &mdash; the breakdown behind every dashboard chart.</p>
+
+      <h2>The code</h2>
+      <p>Station counts per country, for stations west of 100&deg;W:</p>
+      <pre>SELECT country, COUNT(*) AS num_stations
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country;</pre>
+      <p>The execution order matters:</p>
+      <ol>
+        <li><code>WHERE lon &lt; -100.0</code> &mdash; filter rows first.</li>
+        <li><code>GROUP BY country</code> &mdash; bucket the survivors by country.</li>
+        <li><code>COUNT(*)</code> &mdash; tally each bucket. One result row per country.</li>
+      </ol>
+      <p>Every column in the <code>SELECT</code> must either be in the <code>GROUP BY</code> or wrapped in an aggregate &mdash; otherwise the database can't know which row's value you mean.</p>
+
+      <h2>In practice</h2>
+      <p>This is the single most useful query shape in analytics: revenue per month, errors per service, users per plan. If you've ever written <code>.groupby()</code> in pandas after pulling a whole table, this is the same operation &mdash; pushed into the database where it belongs.</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> <code>df[df.lon &lt; -100].groupby('country').size()</code>. Filter, group, summarize &mdash; identical verbs, identical order, in both languages.</p>
+      </div>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> using this sample of <code>weather_stations</code>, predict the result of the query above. Then add <code>AVG(elevation) AS avg_elevation</code> to the <code>SELECT</code> &mdash; how does the result change?</p>
+      <table class="sample">
+        <tr><th>country</th><th>lon</th><th>elevation</th></tr>
+        <tr><td>USA</td><td>-110.2</td><td>1500</td></tr>
+        <tr><td>USA</td><td>-105.5</td><td>800</td></tr>
+        <tr><td>Canada</td><td>-120.0</td><td>600</td></tr>
+        <tr><td>Mexico</td><td>-99.5</td><td>200</td></tr>
+        <tr><td>USA</td><td>-115.0</td><td>2100</td></tr>
+      </table>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>SELECT country, COUNT(*) AS num_stations
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country;</pre>
+          <p>Two rows: <strong>USA &rarr; 3</strong> stations, <strong>Canada &rarr; 1</strong>. Mexico never makes it to grouping &mdash; its <code>lon</code> of -99.5 fails the <code>WHERE</code> filter, so it's gone before any bucket exists.</p>
+          <pre>SELECT country, COUNT(*) AS num_stations,
+       AVG(elevation) AS avg_elevation
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country;</pre>
+          <table class="sample">
+            <tr><th>country</th><th>num_stations</th><th>avg_elevation</th></tr>
+            <tr><td>USA</td><td>3</td><td>1466.7</td></tr>
+            <tr><td>Canada</td><td>1</td><td>600.0</td></tr>
+          </table>
+          <p>Same two rows, one extra column &mdash; the shape doesn't change, the summary per group just gets richer. USA's average elevation is (1500 + 800 + 2100) / 3 = 1466.7; Canada's is 600.</p>
+        </div>
+      </details>
+
+      <h2>Further reading</h2>
+      <p><a href="https://dev.to/pythontutorial/group-by-in-sql-how-to-aggregate-and-analyze-data-efficiently-2be7" target="_blank" rel="noopener">GROUP BY in SQL: How to Aggregate and Analyze Data Efficiently</a></p>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Arman Pouyaei</span>
+    <a href="../index.html">&larr; Back to portfolio</a>
+  </footer>
+</body>
+</html>
