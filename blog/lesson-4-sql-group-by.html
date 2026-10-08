@@ -52,6 +52,21 @@
     .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
       padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
     .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
+    table.sample{width:100%;border-collapse:collapse;margin:0 0 22px;font:13px/1.6 var(--mono);background:var(--surface);border:1px solid var(--line);}
+    table.sample th{text-align:left;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:11px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    table.sample td{padding:10px 16px;border-bottom:1px solid var(--line);color:var(--ink);}
+    table.sample tr:last-child td{border-bottom:none;}
     .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
       text-transform:uppercase;color:var(--cyan);text-decoration:none;}
     a{color:var(--cyan);}
@@ -73,7 +88,8 @@
 
   <main class="wrap">
     <article>
-      <div class="kicker">Lesson 4 &nbsp;·&nbsp; Oct 7, 2026 &nbsp;·&nbsp; SQL</div>
+      <div class="kicker">Lesson 4 &nbsp;·&nbsp; Oct 7, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
       <h1>One summary per group with GROUP BY</h1>
 
       <p>Aggregates collapse a whole table into one number. <code>GROUP BY</code> goes one step further: it splits rows into buckets first, then computes one aggregate <em>per bucket</em>. One number per country, per day, per category &mdash; the breakdown behind every dashboard chart.</p>
@@ -100,7 +116,22 @@ GROUP BY country;</pre>
       </div>
 
       <h2>Try it</h2>
-      <p>Predict which countries appear in the result and their counts for a small sample table. Then add a second aggregate &mdash; <code>AVG(elevation)</code> &mdash; and predict how the result shape changes. (Spoiler: it doesn't; you just get one more column per group.)</p>
+      <p><strong>Practice question:</strong> using this sample of <code>weather_stations</code>, predict the result of the query above. Then add <code>AVG(elevation) AS avg_elevation</code> to the <code>SELECT</code> &mdash; how does the result change?</p>
+      <table class="sample">
+        <tr><th>country</th><th>lon</th><th>elevation</th></tr>
+        <tr><td>USA</td><td>-110.2</td><td>1500</td></tr>
+        <tr><td>USA</td><td>-105.5</td><td>800</td></tr>
+        <tr><td>Canada</td><td>-120.0</td><td>600</td></tr>
+        <tr><td>Mexico</td><td>-99.5</td><td>200</td></tr>
+        <tr><td>USA</td><td>-115.0</td><td>2100</td></tr>
+      </table>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <p>Two rows: <strong>USA &rarr; 3</strong> stations, <strong>Canada &rarr; 1</strong>. Mexico never makes it to grouping &mdash; its <code>lon</code> of -99.5 fails the <code>WHERE lon &lt; -100.0</code> filter, so it's gone before any bucket exists.</p>
+          <p>Adding <code>AVG(elevation)</code>: the shape doesn't change &mdash; still one row per country &mdash; you just get a third column. USA's average elevation is (1500 + 800 + 2100) / 3 = 1466.7; Canada's is 600.</p>
+        </div>
+      </details>
 
       <h2>Further reading</h2>
       <p><a href="https://dev.to/pythontutorial/group-by-in-sql-how-to-aggregate-and-analyze-data-efficiently-2be7" target="_blank" rel="noopener">GROUP BY in SQL: How to Aggregate and Analyze Data Efficiently</a></p>
