@@ -128,8 +128,22 @@ GROUP BY country;</pre>
       <details class="answer">
         <summary>Show answer</summary>
         <div class="answer-body">
-          <p>Two rows: <strong>USA &rarr; 3</strong> stations, <strong>Canada &rarr; 1</strong>. Mexico never makes it to grouping &mdash; its <code>lon</code> of -99.5 fails the <code>WHERE lon &lt; -100.0</code> filter, so it's gone before any bucket exists.</p>
-          <p>Adding <code>AVG(elevation)</code>: the shape doesn't change &mdash; still one row per country &mdash; you just get a third column. USA's average elevation is (1500 + 800 + 2100) / 3 = 1466.7; Canada's is 600.</p>
+          <pre>SELECT country, COUNT(*) AS num_stations
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country;</pre>
+          <p>Two rows: <strong>USA &rarr; 3</strong> stations, <strong>Canada &rarr; 1</strong>. Mexico never makes it to grouping &mdash; its <code>lon</code> of -99.5 fails the <code>WHERE</code> filter, so it's gone before any bucket exists.</p>
+          <pre>SELECT country, COUNT(*) AS num_stations,
+       AVG(elevation) AS avg_elevation
+FROM weather_stations
+WHERE lon &lt; -100.0
+GROUP BY country;</pre>
+          <table class="sample">
+            <tr><th>country</th><th>num_stations</th><th>avg_elevation</th></tr>
+            <tr><td>USA</td><td>3</td><td>1466.7</td></tr>
+            <tr><td>Canada</td><td>1</td><td>600.0</td></tr>
+          </table>
+          <p>Same two rows, one extra column &mdash; the shape doesn't change, the summary per group just gets richer. USA's average elevation is (1500 + 800 + 2100) / 3 = 1466.7; Canada's is 600.</p>
         </div>
       </details>
 
