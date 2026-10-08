@@ -53,29 +53,6 @@
     .post-card p{margin:0;color:var(--muted);line-height:1.6;font-size:15px;}
     .post-card .read{margin-top:14px;font:500 12px/1 var(--mono);color:var(--cyan);letter-spacing:.06em;}
     .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
-    .progress{margin:0 0 44px;}
-    .progress-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px;font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;}
-    .progress-head .lbl{color:var(--cyan);}
-    .progress-head .count{color:var(--muted);}
-    .bar{height:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;overflow:hidden;}
-    .bar .fill{height:100%;width:26%;background:linear-gradient(90deg,var(--cyan),var(--lime));border-radius:999px;}
-    .roadmap{margin-top:72px;}
-    .roadmap h2{font-size:24px;margin:0 0 10px;letter-spacing:-.01em;}
-    .roadmap .sub{color:var(--muted);font-size:15px;line-height:1.65;margin:0 0 28px;max-width:600px;}
-    .modules{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-    @media (max-width:640px){.modules{grid-template-columns:1fr;}}
-    .module{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;}
-    .mod-head{display:flex;justify-content:space-between;gap:10px;font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;}
-    .mod-head .t{color:var(--ink);}
-    .mod-head .n{color:var(--cyan);}
-    .module ul{list-style:none;margin:0;padding:0;}
-    .module li{display:flex;align-items:center;gap:10px;font-size:14.5px;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);}
-    .module li:last-child{border-bottom:none;}
-    .module li.done{color:var(--ink);}
-    .module li.done a{color:var(--ink);text-decoration:none;}
-    .module li.done a:hover{color:var(--cyan);}
-    .tick{font-family:var(--mono);font-size:12px;color:var(--lime);flex-shrink:0;}
-    .module li.todo .tick{color:var(--line);}
     footer{border-top:1px solid var(--line);padding:28px 32px;color:var(--muted);
       font:400 12px/1.6 var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
     footer a{color:var(--cyan);text-decoration:none;}
@@ -96,13 +73,6 @@
     <div class="kicker">Learning in public</div>
     <h1>Blog</h1>
 
-    <section class="progress" aria-label="Learning progress">
-      <div class="progress-head">
-        <span class="lbl">Data Engineering Fundamentals</span>
-        <span class="count">5 of 19 lessons</span>
-      </div>
-      <div class="bar"><div class="fill"></div></div>
-    </section>
     <a class="post-card" href="blog/lesson-5-sql-having.html">
       <div class="meta"><b>Lesson 5</b> &nbsp;·&nbsp; Oct 8, 2026 </div>
       <span class="tag">Data Engineering Fundamentals</span>
@@ -142,52 +112,6 @@
       <p>The first thing you do with any new table: pick columns, filter rows. SELECT is the column list, WHERE is the row filter &mdash; and it maps exactly onto pandas.</p>
       <div class="read">READ &rarr;</div>
     </a>
-    <section class="roadmap" aria-label="Curriculum roadmap">
-      <h2>The roadmap</h2>
-      <p class="sub">The full learning plan behind this blog &mdash; SQL foundations, database management, data lakes, then PySpark. Completed lessons link to their posts; the rest are coming as the lessons land.</p>
-      <div class="modules">
-        <div class="module">
-          <div class="mod-head"><span class="t">01 &middot; SQL foundations</span><span class="n">5/7</span></div>
-          <ul>
-            <li class="done"><span class="tick">&#10003;</span><a href="blog/lesson-1-sql-select-where.html">SELECT + WHERE</a></li>
-            <li class="done"><span class="tick">&#10003;</span><a href="blog/lesson-2-sql-order-by-limit.html">ORDER BY + LIMIT</a></li>
-            <li class="done"><span class="tick">&#10003;</span><a href="blog/lesson-3-sql-aggregates.html">COUNT, SUM &amp; AVG</a></li>
-            <li class="done"><span class="tick">&#10003;</span><a href="blog/lesson-4-sql-group-by.html">GROUP BY</a></li>
-            <li class="done"><span class="tick">&#10003;</span><a href="blog/lesson-5-sql-having.html">HAVING</a></li>
-            <li class="todo"><span class="tick">&#9675;</span>JOIN basics</li>
-            <li class="todo"><span class="tick">&#9675;</span>CTEs</li>
-          </ul>
-        </div>
-        <div class="module">
-          <div class="mod-head"><span class="t">02 &middot; Database management</span><span class="n">0/4</span></div>
-          <ul>
-            <li class="todo"><span class="tick">&#9675;</span>Tables, keys &amp; constraints</li>
-            <li class="todo"><span class="tick">&#9675;</span>Indexes + EXPLAIN</li>
-            <li class="todo"><span class="tick">&#9675;</span>Transactions + ACID</li>
-            <li class="todo"><span class="tick">&#9675;</span>Normalization</li>
-          </ul>
-        </div>
-        <div class="module">
-          <div class="mod-head"><span class="t">03 &middot; Data lakes</span><span class="n">0/4</span></div>
-          <ul>
-            <li class="todo"><span class="tick">&#9675;</span>Files + Parquet</li>
-            <li class="todo"><span class="tick">&#9675;</span>Partitioning</li>
-            <li class="todo"><span class="tick">&#9675;</span>Table formats</li>
-            <li class="todo"><span class="tick">&#9675;</span>Incremental ingestion</li>
-          </ul>
-        </div>
-        <div class="module">
-          <div class="mod-head"><span class="t">04 &middot; PySpark</span><span class="n">0/4</span></div>
-          <ul>
-            <li class="todo"><span class="tick">&#9675;</span>DataFrames</li>
-            <li class="todo"><span class="tick">&#9675;</span>Joins + aggregations</li>
-            <li class="todo"><span class="tick">&#9675;</span>Partitions + shuffles</li>
-            <li class="todo"><span class="tick">&#9675;</span>Read/write pipelines</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <footer>
