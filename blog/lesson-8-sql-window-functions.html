@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>Ranking rows without collapsing them: window functions — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 8: a window function computes a new column for every row by peeking at a window of related rows. RANK() OVER (PARTITION BY region ORDER BY temp_c DESC) ranks weather stations within each region without collapsing rows like GROUP BY does." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050b0d; --surface:#0b1518; --surface-2:#112226;
+      --ink:#eefaf7; --muted:#9bb2ad; --line:#22383c;
+      --cyan:#62e6e1; --lime:#b9ef6b; --amber:#ffad69;
+      --grid:rgba(179,229,224,.052);
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --sans:"Manrope",system-ui,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;font-family:var(--sans);color:var(--ink);
+      background:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),var(--bg);
+      background-size:52px 52px;-webkit-font-smoothing:antialiased;}
+    .topbar{min-height:74px;display:flex;align-items:center;justify-content:flex-end;gap:28px;
+      border-bottom:1px solid var(--line);font:500 11px/1 var(--mono);letter-spacing:.06em;
+      text-transform:uppercase;padding:0 32px;}
+    .topbar .status{margin-right:auto;display:flex;align-items:center;gap:10px;color:var(--muted);}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);}
+    .topbar a{text-decoration:none;color:var(--muted);transition:color .2s ease;}
+    .topbar a:hover,.topbar a.active{color:var(--cyan);}
+    .wrap{max-width:780px;margin:0 auto;padding:56px 24px 100px;}
+    .kicker{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;}
+    h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 24px;letter-spacing:-.01em;}
+    article p,article li{line-height:1.75;color:#cfe3dd;font-size:16px;}
+    article p{margin:0 0 18px;}
+    article h2{font-size:23px;margin:44px 0 14px;color:var(--ink);}
+    pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+      overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 22px;}
+    p code,li code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);color:var(--cyan);
+      padding:2px 7px;border-radius:6px;white-space:nowrap;}
+    .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
+      padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
+    .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
+    table.sample{width:100%;border-collapse:collapse;margin:0 0 22px;font:13px/1.6 var(--mono);background:var(--surface);border:1px solid var(--line);}
+    table.sample th{text-align:left;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:11px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    table.sample td{padding:10px 16px;border-bottom:1px solid var(--line);color:var(--ink);}
+    table.sample tr:last-child td{border-bottom:none;}
+    .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
+      text-transform:uppercase;color:var(--cyan);text-decoration:none;}
+    a{color:var(--cyan);}
+    footer{border-top:1px solid var(--line);padding:28px 32px;color:var(--muted);
+      font:400 12px/1.6 var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    footer a{color:var(--cyan);text-decoration:none;}
+    @media (max-width:640px){ .topbar{gap:18px;padding:0 18px;} .topbar .status{display:none;} }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Primary navigation">
+    <div class="status"><span class="status-dot" aria-hidden="true"></span>Senior data engineer · NYC</div>
+    <a href="../index.html#impact">Impact</a>
+    <a href="../index.html#experience">Experience</a>
+    <a href="../index.html#capabilities">Capabilities</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../blog.html" class="active">Blog</a>
+  </nav>
+
+  <main class="wrap">
+    <article>
+      <div class="kicker">Lesson 8 &nbsp;·&nbsp; Oct 13, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>Ranking rows without collapsing them: window functions</h1>
+
+      <p><code>GROUP BY</code> answers "how much per group?" by collapsing rows: one row in, one summary row out. But sometimes you want the rank <em>and</em> the rows: which station is the hottest in each region &mdash; while still seeing every station? A <strong>window function</strong> computes a value for each row by looking at a "window" of related rows. Nothing collapses; you just get a new column.</p>
+
+      <h2>The code</h2>
+      <pre>SELECT
+    name,
+    region,
+    temp_c,
+    RANK() OVER (PARTITION BY region ORDER BY temp_c DESC) AS heat_rank
+FROM weather_stations;</pre>
+      <table class="sample">
+        <tr><th>name</th><th>region</th><th>temp_c</th><th>heat_rank</th></tr>
+        <tr><td>Houston</td><td>gulf</td><td>38.2</td><td>1</td></tr>
+        <tr><td>Corpus Christi</td><td>gulf</td><td>35.4</td><td>2</td></tr>
+        <tr><td>Phoenix</td><td>desert</td><td>41.7</td><td>1</td></tr>
+        <tr><td>Tucson</td><td>desert</td><td>40.3</td><td>2</td></tr>
+      </table>
+      <p>Reading it piece by piece:</p>
+      <ol>
+        <li><code>PARTITION BY region</code> &mdash; splits the rows into buckets by region, internally like <code>GROUP BY</code>. The key difference: every row survives. Each bucket is just the "window" the function looks at.</li>
+        <li><code>ORDER BY temp_c DESC</code> <em>inside</em> the <code>OVER (...)</code> &mdash; sorts rows within each bucket, so <code>RANK()</code> numbers them: hottest station per region gets 1.</li>
+        <li><code>OVER</code> is the magic marker. Any function followed by <code>OVER</code> becomes a window function: plain <code>SUM(amount)</code> collapses rows; <code>SUM(amount) OVER (ORDER BY day)</code> keeps every row and gives you a running total instead.</li>
+      </ol>
+
+      <h2>In practice</h2>
+      <p>A data engineer reaches for window functions whenever the question is "which rows, <em>ranked</em>, inside each group": top-3 sensors per county, latest reading per station, deduplicating by keeping only row #1 per key. <code>ROW_NUMBER()</code> gives unique numbers (ties get arbitrary order); <code>RANK()</code> gives ties the same number and skips the next; <code>DENSE_RANK()</code> gives ties the same number without skipping. <code>GROUP BY</code> tells you how much per group &mdash; window functions tell you which rows matter inside each group.</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> the same idea in one pandas line, which ranks <code>temp_c</code> within each <code>region</code> and keeps every row:
+        <br /><code>df["heat_rank"] = df.groupby("region")["temp_c"].rank(method="min", ascending=False)</code>
+        <br />Pandas' <code>groupby</code> is the <code>PARTITION BY</code>, and <code>.rank()</code> is the <code>RANK() OVER</code> &mdash; SQL just runs it inside the warehouse instead of in your notebook.</p>
+      </div>
+
+      <h2>Further reading</h2>
+      <p><a href="https://dev.to/vivekdraxlr/sql-window-functions-explained-stop-collapsing-your-data-with-group-by-3ghe" target="_blank" rel="noopener">SQL Window Functions Explained: Stop Collapsing Your Data with GROUP BY &mdash; dev.to</a></p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> using the same <code>weather_stations</code> table above (columns: <code>name</code>, <code>region</code>, <code>temp_c</code>), write a query that ranks stations by temperature <em>descending</em> across the <strong>whole table</strong> &mdash; no partitions &mdash; so the hottest station in the world gets rank 1. Show <code>name</code>, <code>temp_c</code>, and the rank.</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>SELECT
+    name,
+    temp_c,
+    RANK() OVER (ORDER BY temp_c DESC) AS heat_rank
+FROM weather_stations;</pre>
+          <table class="sample">
+            <tr><th>name</th><th>temp_c</th><th>heat_rank</th></tr>
+            <tr><td>Phoenix</td><td>41.7</td><td>1</td></tr>
+            <tr><td>Tucson</td><td>40.3</td><td>2</td></tr>
+            <tr><td>Houston</td><td>38.2</td><td>3</td></tr>
+            <tr><td>Corpus Christi</td><td>35.4</td><td>4</td></tr>
+          </table>
+          <p>Leaving <code>PARTITION BY</code> out of the <code>OVER (...)</code> makes the window the entire table, so the ranking runs globally. Add a <code>PARTITION BY</code> and the same query would restart the rank at 1 inside each region &mdash; the lesson-8 example above.</p>
+        </div>
+      </details>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Arman Pouyaei</span>
+    <a href="../index.html">&larr; Back to portfolio</a>
+  </footer>
+</body>
+</html>
