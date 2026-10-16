@@ -155,6 +155,24 @@
     .traj-controls label { font-size: var(--step-small); font-weight: 600; white-space: nowrap; }
     .traj-controls input[type="range"] { flex: 1; accent-color: var(--accent); min-height: 32px; min-width: 140px; }
     .traj-readout { font-size: var(--step-small); font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; font-weight: 600; }
+    /* partition pruner */
+    .prune { margin-top: 34px; background: var(--surface); padding: clamp(20px, 3vw, 36px); }
+    .prune-title { font-size: var(--step-small); font-weight: 600; margin: 0 0 6px; }
+    .prune-sub { font-size: var(--step-small); color: var(--muted); margin: 0 0 18px; max-width: 54ch; }
+    .prune-slider { display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
+    .prune-slider label { font-size: var(--step-small); font-weight: 600; white-space: nowrap; }
+    .prune-slider input[type="range"] { flex: 1; accent-color: var(--accent); min-height: 32px; }
+    .prune-ticks { display: flex; justify-content: space-between; margin-bottom: 14px; }
+    .prune-ticks span { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .prune-ticks span.on { color: var(--accent); }
+    .prune-sql { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--step-small); background: #fff; border: 1px solid #e2e2e2; padding: 10px 14px; margin: 0 0 12px; overflow-x: auto; white-space: nowrap; }
+    .prune-grid { display: grid; grid-template-columns: auto repeat(12, 1fr); gap: 5px; align-items: center; margin-bottom: 16px; }
+    .prune-m { font-size: 10px; font-weight: 700; color: var(--muted); text-align: center; text-transform: uppercase; }
+    .prune-r { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding-right: 4px; }
+    .prune-cell { aspect-ratio: 1; background: var(--accent); opacity: 1; transition: opacity .3s ease, background .3s ease; min-width: 0; }
+    .prune-cell.off { background: #d8d8d8; opacity: .45; }
+    .prune-readout { font-size: var(--step-small); margin: 0; font-variant-numeric: tabular-nums; }
+    .prune-readout b { font-weight: 700; }
 
     /* full-bleed picture bands */
     .band { margin: 0; position: relative; }
@@ -336,8 +354,22 @@
       <article class="work-row">
         <div>
           <h3 class="work-name rv">Petabyte data pipelines</h3>
-          <p class="work-desc rv rv-d1">Architected containerized ETL on AWS Batch and distributed compute with Dask and PySpark, serving Zarr, Parquet, and NetCDF to downstream analytics and client-facing products.</p>
-          <p class="work-tags rv rv-d2">Platform · AWS Batch · S3 · Docker · Dask · PySpark</p>
+          <p class="work-desc rv rv-d1">Architected containerized ETL on AWS Batch and distributed compute with Dask and Slurm on HPC, serving Zarr, Parquet, and NetCDF to downstream analytics and client-facing products.</p>
+          <p class="work-tags rv rv-d2">Platform · AWS Batch · S3 · Docker · Dask · Slurm on HPC</p>
+          <div class="prune rv" id="prune">
+            <p class="prune-title">Partition pruning</p>
+            <p class="prune-sub">One dataset, 48 partitions — 12 months × 4 regions, 25 TB each. Slide from a full table scan to a pinpoint query: each stop adds a filter, and the engine skips every partition it doesn’t need. Reading 1 partition instead of 48 is what makes petabyte-scale affordable.</p>
+            <div class="prune-slider">
+              <label for="pslide">Query selectivity</label>
+              <input type="range" id="pslide" min="0" max="4" step="1" value="0" aria-label="Query selectivity, from full scan to pinpoint query" />
+            </div>
+            <div class="prune-ticks" id="prune-ticks" aria-hidden="true">
+              <span class="on">Full scan</span><span>2 regions</span><span>1 region · 6 mo</span><span>1 region · 3 mo</span><span>1 region · 1 mo</span>
+            </div>
+            <p class="prune-sql" id="psql">SELECT * FROM storms</p>
+            <div class="prune-grid" id="prune-grid" role="img" aria-label="Partition grid: 12 months by 4 regions"></div>
+            <p class="prune-readout" id="prune-out"></p>
+          </div>
         </div>
         <figure class="work-pic rv">
           <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/BalticServers_data_center.jpg/1920px-BalticServers_data_center.jpg" width="1920" height="1275" alt="Rows of server racks in a data center" loading="lazy" />
@@ -590,6 +622,79 @@
       drawTraj(0);
       if (tIn) {
         tIn.addEventListener("input", function () { drawTraj(parseInt(tIn.value, 10)); });
+      }
+
+      /* The live thing: partition pruning. 48 partitions (12 months x
+         4 regions, 25 TB each); the filter pills decide which the query
+         reads, the rest fade out, and the readout shows data scanned. */
+      var pGrid = document.getElementById("prune-grid");
+      var pOut = document.getElementById("prune-out");
+      var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var REGIONS = ["NE","SE","MW","W"];
+      var TB_EACH = 25, TOTAL = 48;
+      var cells = [];
+      if (pGrid) {
+        var corner = document.createElement("span");
+        pGrid.appendChild(corner);
+        MONTHS.forEach(function (m) {
+          var s = document.createElement("span");
+          s.className = "prune-m"; s.textContent = m;
+          pGrid.appendChild(s);
+        });
+        REGIONS.forEach(function (r, ri) {
+          var lab = document.createElement("span");
+          lab.className = "prune-r"; lab.textContent = r;
+          pGrid.appendChild(lab);
+          MONTHS.forEach(function (m, mi) {
+            var c = document.createElement("div");
+            c.className = "prune-cell";
+            c.title = r + " · " + m + " · 25 TB";
+            pGrid.appendChild(c);
+            cells.push({ el: c, r: ri, m: mi });
+          });
+        });
+      }
+      var LEVELS = [
+        { sql: "SELECT * FROM storms", regs: [0, 1, 2, 3], mos: 12 },
+        { sql: "SELECT * FROM storms WHERE region IN ('MW', 'W')", regs: [2, 3], mos: 12 },
+        { sql: "SELECT * FROM storms WHERE region = 'W' AND month >= 'Jul'", regs: [3], mos: 6 },
+        { sql: "SELECT * FROM storms WHERE region = 'W' AND month >= 'Oct'", regs: [3], mos: 3 },
+        { sql: "SELECT * FROM storms WHERE region = 'W' AND month = 'Dec'", regs: [3], mos: 1 }
+      ];
+      var pSlide = document.getElementById("pslide");
+      var pSql = document.getElementById("psql");
+      var pTicks = document.getElementById("prune-ticks");
+      function fmtTB(tb) {
+        if (tb >= 1000) return (tb / 1000).toFixed(2).replace(/0$/, "") + " PB";
+        return tb + " TB";
+      }
+      function drawPrune(level) {
+        level = reduced ? 0 : level;
+        var L = LEVELS[level];
+        var kept = 0;
+        cells.forEach(function (c) {
+          var keep = L.regs.indexOf(c.r) !== -1 && c.m >= 12 - L.mos;
+          c.el.classList.toggle("off", !keep);
+          if (keep) kept++;
+        });
+        pSql.textContent = L.sql;
+        if (pTicks) {
+          var ts = pTicks.querySelectorAll("span");
+          ts.forEach(function (s, i) { s.classList.toggle("on", i === level); });
+        }
+        if (kept === TOTAL) {
+          pOut.innerHTML = "Full table scan — reading all <b>" + TOTAL + "</b> partitions · <b>" +
+            fmtTB(TOTAL * TB_EACH) + "</b> scanned. Slide right to filter it.";
+        } else {
+          var cut = TOTAL / kept;
+          pOut.innerHTML = "Reading <b>" + kept + "</b> of " + TOTAL + " partitions · <b>" +
+            fmtTB(kept * TB_EACH) + "</b> scanned instead of " + fmtTB(TOTAL * TB_EACH) +
+            " — <b>" + cut.toFixed(0) + "×</b> less data";
+        }
+      }
+      if (pGrid && pSlide) {
+        pSlide.addEventListener("input", function () { drawPrune(parseInt(pSlide.value, 10)); });
+        drawPrune(0);
       }
       if (lead) {
         lead.addEventListener("input", function () { draw(parseInt(lead.value, 10)); });
