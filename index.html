@@ -159,11 +159,13 @@
     .prune { margin-top: 34px; background: var(--surface); padding: clamp(20px, 3vw, 36px); }
     .prune-title { font-size: var(--step-small); font-weight: 600; margin: 0 0 6px; }
     .prune-sub { font-size: var(--step-small); color: var(--muted); margin: 0 0 18px; max-width: 54ch; }
-    .prune-controls { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 18px; }
-    .prune-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .prune-pills { display: flex; gap: 8px; flex-wrap: wrap; }
-    .prune-pills button { font: inherit; font-size: var(--step-small); font-weight: 600; padding: 8px 14px; border: 1px solid #d8d8d8; background: #fff; color: var(--ink); cursor: pointer; min-height: 36px; }
-    .prune-pills button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .prune-slider { display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
+    .prune-slider label { font-size: var(--step-small); font-weight: 600; white-space: nowrap; }
+    .prune-slider input[type="range"] { flex: 1; accent-color: var(--accent); min-height: 32px; }
+    .prune-ticks { display: flex; justify-content: space-between; margin-bottom: 14px; }
+    .prune-ticks span { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .prune-ticks span.on { color: var(--accent); }
+    .prune-sql { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--step-small); background: #fff; border: 1px solid #e2e2e2; padding: 10px 14px; margin: 0 0 12px; overflow-x: auto; white-space: nowrap; }
     .prune-grid { display: grid; grid-template-columns: auto repeat(12, 1fr); gap: 5px; align-items: center; margin-bottom: 16px; }
     .prune-m { font-size: 10px; font-weight: 700; color: var(--muted); text-align: center; text-transform: uppercase; }
     .prune-r { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding-right: 4px; }
@@ -356,21 +358,15 @@
           <p class="work-tags rv rv-d2">Platform · AWS Batch · S3 · Docker · Dask · Slurm on HPC</p>
           <div class="prune rv" id="prune">
             <p class="prune-title">Partition pruning</p>
-            <p class="prune-sub">One dataset, 48 partitions — 12 months × 4 regions, 25 TB each. Set the query’s filters and watch the engine skip every partition it doesn’t need. Reading 3 partitions instead of 48 is what makes petabyte-scale affordable.</p>
-            <div class="prune-controls">
-              <div>
-                <span class="prune-label">Region</span>
-                <div class="prune-pills" id="prune-region" role="group" aria-label="Region filter">
-                  <button type="button" data-v="all" class="on">All</button><button type="button" data-v="0">Northeast</button><button type="button" data-v="1">Southeast</button><button type="button" data-v="2">Midwest</button><button type="button" data-v="3">West</button>
-                </div>
-              </div>
-              <div>
-                <span class="prune-label">Time window</span>
-                <div class="prune-pills" id="prune-time" role="group" aria-label="Time window filter">
-                  <button type="button" data-v="12" class="on">12 mo</button><button type="button" data-v="6">6 mo</button><button type="button" data-v="3">3 mo</button><button type="button" data-v="1">1 mo</button>
-                </div>
-              </div>
+            <p class="prune-sub">One dataset, 48 partitions — 12 months × 4 regions, 25 TB each. Slide from a full table scan to a pinpoint query: each stop adds a filter, and the engine skips every partition it doesn’t need. Reading 1 partition instead of 48 is what makes petabyte-scale affordable.</p>
+            <div class="prune-slider">
+              <label for="pslide">Query selectivity</label>
+              <input type="range" id="pslide" min="0" max="4" step="1" value="0" aria-label="Query selectivity, from full scan to pinpoint query" />
             </div>
+            <div class="prune-ticks" id="prune-ticks" aria-hidden="true">
+              <span class="on">Full scan</span><span>2 regions</span><span>1 region · 6 mo</span><span>1 region · 3 mo</span><span>1 region · 1 mo</span>
+            </div>
+            <p class="prune-sql" id="psql">SELECT * FROM storms</p>
             <div class="prune-grid" id="prune-grid" role="img" aria-label="Partition grid: 12 months by 4 regions"></div>
             <p class="prune-readout" id="prune-out"></p>
           </div>
@@ -633,8 +629,6 @@
          reads, the rest fade out, and the readout shows data scanned. */
       var pGrid = document.getElementById("prune-grid");
       var pOut = document.getElementById("prune-out");
-      var pReg = document.getElementById("prune-region");
-      var pTime = document.getElementById("prune-time");
       var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       var REGIONS = ["NE","SE","MW","W"];
       var TB_EACH = 25, TOTAL = 48;
@@ -660,23 +654,37 @@
           });
         });
       }
-      var fReg = "all", fTime = 12;
+      var LEVELS = [
+        { sql: "SELECT * FROM storms", regs: [0, 1, 2, 3], mos: 12 },
+        { sql: "SELECT * FROM storms WHERE region IN ('MW', 'W')", regs: [2, 3], mos: 12 },
+        { sql: "SELECT * FROM storms WHERE region = 'W' AND month >= 'Jul'", regs: [3], mos: 6 },
+        { sql: "SELECT * FROM storms WHERE region = 'W' AND month >= 'Oct'", regs: [3], mos: 3 },
+        { sql: "SELECT * FROM storms WHERE region = 'W' AND month = 'Dec'", regs: [3], mos: 1 }
+      ];
+      var pSlide = document.getElementById("pslide");
+      var pSql = document.getElementById("psql");
+      var pTicks = document.getElementById("prune-ticks");
       function fmtTB(tb) {
         if (tb >= 1000) return (tb / 1000).toFixed(2).replace(/0$/, "") + " PB";
         return tb + " TB";
       }
-      function drawPrune() {
+      function drawPrune(level) {
+        level = reduced ? 0 : level;
+        var L = LEVELS[level];
         var kept = 0;
         cells.forEach(function (c) {
-          var keepR = (fReg === "all" || c.r === parseInt(fReg, 10));
-          var keepT = c.m >= 12 - fTime;
-          var keep = keepR && keepT;
+          var keep = L.regs.indexOf(c.r) !== -1 && c.m >= 12 - L.mos;
           c.el.classList.toggle("off", !keep);
           if (keep) kept++;
         });
+        pSql.textContent = L.sql;
+        if (pTicks) {
+          var ts = pTicks.querySelectorAll("span");
+          ts.forEach(function (s, i) { s.classList.toggle("on", i === level); });
+        }
         if (kept === TOTAL) {
-          pOut.innerHTML = "Reading all <b>" + TOTAL + "</b> partitions · <b>" +
-            fmtTB(TOTAL * TB_EACH) + "</b> scanned — the full table scan. Now filter it.";
+          pOut.innerHTML = "Full table scan — reading all <b>" + TOTAL + "</b> partitions · <b>" +
+            fmtTB(TOTAL * TB_EACH) + "</b> scanned. Slide right to filter it.";
         } else {
           var cut = TOTAL / kept;
           pOut.innerHTML = "Reading <b>" + kept + "</b> of " + TOTAL + " partitions · <b>" +
@@ -684,20 +692,9 @@
             " — <b>" + cut.toFixed(0) + "×</b> less data";
         }
       }
-      function pillify(wrap, fn) {
-        wrap.addEventListener("click", function (e) {
-          var b = e.target.closest("button");
-          if (!b) return;
-          wrap.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
-          b.classList.add("on");
-          fn(b.getAttribute("data-v"));
-          drawPrune();
-        });
-      }
-      if (pGrid) {
-        pillify(pReg, function (v) { fReg = v; });
-        pillify(pTime, function (v) { fTime = parseInt(v, 10); });
-        drawPrune();
+      if (pGrid && pSlide) {
+        pSlide.addEventListener("input", function () { drawPrune(parseInt(pSlide.value, 10)); });
+        drawPrune(0);
       }
       if (lead) {
         lead.addEventListener("input", function () { draw(parseInt(lead.value, 10)); });
