@@ -155,6 +155,22 @@
     .traj-controls label { font-size: var(--step-small); font-weight: 600; white-space: nowrap; }
     .traj-controls input[type="range"] { flex: 1; accent-color: var(--accent); min-height: 32px; min-width: 140px; }
     .traj-readout { font-size: var(--step-small); font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; font-weight: 600; }
+    /* partition pruner */
+    .prune { margin-top: 34px; background: var(--surface); padding: clamp(20px, 3vw, 36px); }
+    .prune-title { font-size: var(--step-small); font-weight: 600; margin: 0 0 6px; }
+    .prune-sub { font-size: var(--step-small); color: var(--muted); margin: 0 0 18px; max-width: 54ch; }
+    .prune-controls { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 18px; }
+    .prune-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .prune-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .prune-pills button { font: inherit; font-size: var(--step-small); font-weight: 600; padding: 8px 14px; border: 1px solid #d8d8d8; background: #fff; color: var(--ink); cursor: pointer; min-height: 36px; }
+    .prune-pills button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .prune-grid { display: grid; grid-template-columns: auto repeat(12, 1fr); gap: 5px; align-items: center; margin-bottom: 16px; }
+    .prune-m { font-size: 10px; font-weight: 700; color: var(--muted); text-align: center; text-transform: uppercase; }
+    .prune-r { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding-right: 4px; }
+    .prune-cell { aspect-ratio: 1; background: var(--accent); opacity: 1; transition: opacity .3s ease, background .3s ease; min-width: 0; }
+    .prune-cell.off { background: #d8d8d8; opacity: .45; }
+    .prune-readout { font-size: var(--step-small); margin: 0; font-variant-numeric: tabular-nums; }
+    .prune-readout b { font-weight: 700; }
 
     /* full-bleed picture bands */
     .band { margin: 0; position: relative; }
@@ -338,6 +354,26 @@
           <h3 class="work-name rv">Petabyte data pipelines</h3>
           <p class="work-desc rv rv-d1">Architected containerized ETL on AWS Batch and distributed compute with Dask and PySpark, serving Zarr, Parquet, and NetCDF to downstream analytics and client-facing products.</p>
           <p class="work-tags rv rv-d2">Platform · AWS Batch · S3 · Docker · Dask · PySpark</p>
+          <div class="prune rv" id="prune">
+            <p class="prune-title">Partition pruning, live</p>
+            <p class="prune-sub">One dataset, 48 partitions — 12 months × 4 regions, 25 TB each. Set the query’s filters and watch the engine skip every partition it doesn’t need. Reading 3 partitions instead of 48 is what makes petabyte-scale affordable.</p>
+            <div class="prune-controls">
+              <div>
+                <span class="prune-label">Region</span>
+                <div class="prune-pills" id="prune-region" role="group" aria-label="Region filter">
+                  <button type="button" data-v="all" class="on">All</button><button type="button" data-v="0">Northeast</button><button type="button" data-v="1">Southeast</button><button type="button" data-v="2">Midwest</button><button type="button" data-v="3">West</button>
+                </div>
+              </div>
+              <div>
+                <span class="prune-label">Time window</span>
+                <div class="prune-pills" id="prune-time" role="group" aria-label="Time window filter">
+                  <button type="button" data-v="12" class="on">12 mo</button><button type="button" data-v="6">6 mo</button><button type="button" data-v="3">3 mo</button><button type="button" data-v="1">1 mo</button>
+                </div>
+              </div>
+            </div>
+            <div class="prune-grid" id="prune-grid" role="img" aria-label="Partition grid: 12 months by 4 regions"></div>
+            <p class="prune-readout" id="prune-out"></p>
+          </div>
         </div>
         <figure class="work-pic rv">
           <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/BalticServers_data_center.jpg/1920px-BalticServers_data_center.jpg" width="1920" height="1275" alt="Rows of server racks in a data center" loading="lazy" />
@@ -590,6 +626,78 @@
       drawTraj(0);
       if (tIn) {
         tIn.addEventListener("input", function () { drawTraj(parseInt(tIn.value, 10)); });
+      }
+
+      /* The live thing: partition pruning. 48 partitions (12 months x
+         4 regions, 25 TB each); the filter pills decide which the query
+         reads, the rest fade out, and the readout shows data scanned. */
+      var pGrid = document.getElementById("prune-grid");
+      var pOut = document.getElementById("prune-out");
+      var pReg = document.getElementById("prune-region");
+      var pTime = document.getElementById("prune-time");
+      var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var REGIONS = ["NE","SE","MW","W"];
+      var TB_EACH = 25, TOTAL = 48;
+      var cells = [];
+      if (pGrid) {
+        var corner = document.createElement("span");
+        pGrid.appendChild(corner);
+        MONTHS.forEach(function (m) {
+          var s = document.createElement("span");
+          s.className = "prune-m"; s.textContent = m;
+          pGrid.appendChild(s);
+        });
+        REGIONS.forEach(function (r, ri) {
+          var lab = document.createElement("span");
+          lab.className = "prune-r"; lab.textContent = r;
+          pGrid.appendChild(lab);
+          MONTHS.forEach(function (m, mi) {
+            var c = document.createElement("div");
+            c.className = "prune-cell";
+            c.title = r + " · " + m + " · 25 TB";
+            pGrid.appendChild(c);
+            cells.push({ el: c, r: ri, m: mi });
+          });
+        });
+      }
+      var fReg = "all", fTime = 12;
+      function fmtTB(tb) {
+        if (tb >= 1000) return (tb / 1000).toFixed(2).replace(/0$/, "") + " PB";
+        return tb + " TB";
+      }
+      function drawPrune() {
+        var kept = 0;
+        cells.forEach(function (c) {
+          var keepR = (fReg === "all" || c.r === parseInt(fReg, 10));
+          var keepT = c.m >= 12 - fTime;
+          var keep = keepR && keepT;
+          c.el.classList.toggle("off", !keep);
+          if (keep) kept++;
+        });
+        if (kept === TOTAL) {
+          pOut.innerHTML = "Reading all <b>" + TOTAL + "</b> partitions · <b>" +
+            fmtTB(TOTAL * TB_EACH) + "</b> scanned — the full table scan. Now filter it.";
+        } else {
+          var cut = TOTAL / kept;
+          pOut.innerHTML = "Reading <b>" + kept + "</b> of " + TOTAL + " partitions · <b>" +
+            fmtTB(kept * TB_EACH) + "</b> scanned instead of " + fmtTB(TOTAL * TB_EACH) +
+            " — <b>" + cut.toFixed(0) + "×</b> less data";
+        }
+      }
+      function pillify(wrap, fn) {
+        wrap.addEventListener("click", function (e) {
+          var b = e.target.closest("button");
+          if (!b) return;
+          wrap.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+          b.classList.add("on");
+          fn(b.getAttribute("data-v"));
+          drawPrune();
+        });
+      }
+      if (pGrid) {
+        pillify(pReg, function (v) { fReg = v; });
+        pillify(pTime, function (v) { fTime = parseInt(v, 10); });
+        drawPrune();
       }
       if (lead) {
         lead.addEventListener("input", function () { draw(parseInt(lead.value, 10)); });
