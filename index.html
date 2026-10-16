@@ -351,8 +351,8 @@
           <p class="work-desc rv rv-d1">Built and open-sourced multiple projects, such as a Lagrangian trajectory framework, adopted by external research groups for scientific purposes.</p>
           <p class="work-tags rv rv-d2">Open science, Geospatial · Fortran · atmospheric science</p>
           <div class="traj rv" id="traj">
-            <p class="traj-title">The trajectory, live</p>
-            <p class="traj-sub">A Lagrangian parcel released at t₀. Drag time forward to follow it downstream — or backward to trace where the air came from. That forward/backward idea is the heart of a Lagrangian particle tracking tool.</p>
+            <p class="traj-title">The ensemble, live</p>
+            <p class="traj-sub">Ten ensemble trajectories in gray, the median in blue — one parcel, ten plausible paths. Drag time forward to follow the plume downstream, or backward to trace where the air came from. That forward/backward idea is the heart of the Lagrangian particle tracking tool.</p>
             <svg viewBox="0 0 560 360" role="img" aria-label="Interactive Lagrangian trajectory explorer">
               <g stroke="#111111" opacity="0.10">
                 <line x1="0" y1="180" x2="560" y2="180" />
@@ -361,11 +361,13 @@
                 <circle cx="280" cy="180" r="104" fill="none" />
                 <circle cx="280" cy="180" r="156" fill="none" />
               </g>
-              <path id="traj-full" fill="none" stroke="#6b6b6b" stroke-width="1.5" opacity="0.4" d="" />
-              <path id="traj-done" fill="none" stroke="#1a4be0" stroke-width="2.5" d="" />
+              <g id="traj-members" stroke="#6b6b6b" fill="none" stroke-width="1.5" opacity="0.35"></g>
+              <path id="traj-full" fill="none" stroke="#1a4be0" stroke-width="2" opacity="1" d="" />
+              <path id="traj-done" fill="none" stroke="#1a4be0" stroke-width="3.5" d="" />
+              <g id="traj-dots" fill="#6b6b6b" opacity="0.85"></g>
               <line x1="272" y1="180" x2="288" y2="180" stroke="#111111" stroke-width="2" />
               <line x1="280" y1="172" x2="280" y2="188" stroke="#111111" stroke-width="2" />
-              <circle id="traj-dot" cx="280" cy="180" r="7" fill="#111111" stroke="#ffffff" stroke-width="2" />
+              <circle id="traj-dot" cx="280" cy="180" r="8" fill="#111111" stroke="#ffffff" stroke-width="2.5" />
               <text x="280" y="210" text-anchor="middle" font-size="12" fill="#6b6b6b" font-family="Public Sans, sans-serif">t₀, release point</text>
             </svg>
             <div class="traj-controls">
@@ -533,36 +535,56 @@
       }
       draw(72);
 
-      /* The live thing: Lagrangian trajectory explorer. A parcel released at
-         t=0; the slider runs time forward (+) or backward (-), and the dot
-         follows the trajectory while the traveled leg highlights. */
+      /* The live thing: Lagrangian trajectory ensemble. Ten member
+         trajectories in translucent gray, the median in solid color.
+         The slider runs time forward (+) or backward (-); dots follow
+         every member while the median's traveled leg highlights. */
+      var tMembers = document.getElementById("traj-members");
+      var tDots = document.getElementById("traj-dots");
       var tFull = document.getElementById("traj-full");
       var tDone = document.getElementById("traj-done");
       var tDot = document.getElementById("traj-dot");
       var tIn = document.getElementById("ttime");
       var tOut = document.getElementById("tout");
       var CX = 280, CY = 180;
-      function tpx(t) { return CX + 3.2 * t + 26 * Math.sin(0.05 * t); }
-      function tpy(t) { return CY - 1.6 * t + 18 * (Math.cos(0.04 * t + 0.8) - Math.cos(0.8)); }
-      function tpath(a, b) {
+      /* Fixed member offsets so the plume is stable per visit; all members
+         start at the release point (perturbations vanish at t = 0). */
+      var MEM = [-1, -0.78, -0.55, -0.33, -0.11, 0.11, 0.33, 0.55, 0.78, 1];
+      function mpx(m, t) { return CX + (2.9 + 0.35 * m) * t + (34 + 7 * m) * Math.sin(0.055 * t) + 10 * m * Math.sin(0.13 * t); }
+      function mpy(m, t) { return CY - (1.35 + 0.2 * m) * t + (30 + 7 * m) * (Math.cos(0.05 * t + 0.8) - Math.cos(0.8)) + 10 * m * (1 - Math.cos(0.11 * t)); }
+      function tpath(m, a, b) {
         var d = "", n = 72, k, t;
         for (k = 0; k <= n; k++) {
           t = a + (b - a) * k / n;
-          d += (k === 0 ? "M " : " L ") + tpx(t).toFixed(1) + " " + tpy(t).toFixed(1);
+          d += (k === 0 ? "M " : " L ") + mpx(m, t).toFixed(1) + " " + mpy(m, t).toFixed(1);
         }
         return d;
       }
+      var memberDots = [];
+      MEM.forEach(function (m) {
+        var p = document.createElementNS(NS, "path");
+        p.setAttribute("d", tpath(m, -72, 72));
+        tMembers.appendChild(p);
+        var c = document.createElementNS(NS, "circle");
+        c.setAttribute("r", "3");
+        tDots.appendChild(c);
+        memberDots.push({ m: m, el: c });
+      });
+      tFull.setAttribute("d", tpath(0, -72, 72));
       function drawTraj(t) {
         t = reduced ? 0 : t;
-        tFull.setAttribute("d", tpath(-72, 72));
+        memberDots.forEach(function (o) {
+          o.el.setAttribute("cx", mpx(o.m, t).toFixed(1));
+          o.el.setAttribute("cy", mpy(o.m, t).toFixed(1));
+        });
         if (t === 0) {
           tDone.setAttribute("d", "");
         } else {
-          tDone.setAttribute("d", t > 0 ? tpath(0, t) : tpath(t, 0));
+          tDone.setAttribute("d", t > 0 ? tpath(0, 0, t) : tpath(0, t, 0));
           tDone.setAttribute("stroke", t > 0 ? "#1a4be0" : "#111111");
         }
-        tDot.setAttribute("cx", tpx(t).toFixed(1));
-        tDot.setAttribute("cy", tpy(t).toFixed(1));
+        tDot.setAttribute("cx", mpx(0, t).toFixed(1));
+        tDot.setAttribute("cy", mpy(0, t).toFixed(1));
         tOut.textContent = "t = " + (t > 0 ? "+" : "") + t + " h";
       }
       drawTraj(0);
