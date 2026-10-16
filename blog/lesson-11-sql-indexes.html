@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>Finding rows without reading everything: indexes — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 11: an index is the database's book index — a lookup structure on a filtered column. CREATE INDEX on weather_stations(country), why a data engineer indexes the columns they filter and join on, and the write-cost tradeoff." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050b0d; --surface:#0b1518; --surface-2:#112226;
+      --ink:#eefaf7; --muted:#9bb2ad; --line:#22383c;
+      --cyan:#62e6e1; --lime:#b9ef6b; --amber:#ffad69;
+      --grid:rgba(179,229,224,.052);
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --sans:"Manrope",system-ui,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;font-family:var(--sans);color:var(--ink);
+      background:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),var(--bg);
+      background-size:52px 52px;-webkit-font-smoothing:antialiased;}
+    .topbar{min-height:74px;display:flex;align-items:center;justify-content:flex-end;gap:28px;
+      border-bottom:1px solid var(--line);font:500 11px/1 var(--mono);letter-spacing:.06em;
+      text-transform:uppercase;padding:0 32px;}
+    .topbar .status{margin-right:auto;display:flex;align-items:center;gap:10px;color:var(--muted);}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);}
+    .topbar a{text-decoration:none;color:var(--muted);transition:color .2s ease;}
+    .topbar a:hover,.topbar a.active{color:var(--cyan);}
+    .wrap{max-width:780px;margin:0 auto;padding:56px 24px 100px;}
+    .kicker{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;}
+    h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 24px;letter-spacing:-.01em;}
+    article p,article li{line-height:1.75;color:#cfe3dd;font-size:16px;}
+    article p{margin:0 0 18px;}
+    article h2{font-size:23px;margin:44px 0 14px;color:var(--ink);}
+    pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+      overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 22px;}
+    p code,li code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);color:var(--cyan);
+      padding:2px 7px;border-radius:6px;white-space:nowrap;}
+    .callout{border-left:3px solid var(--lime);background:rgba(185,239,107,.06);
+      padding:16px 20px;border-radius:0 10px 10px 0;margin:0 0 22px;}
+    .callout p{margin:0;font-size:15px;}
+    .tag{display:inline-block;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--lime);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:16px;background:rgba(185,239,107,.06);}
+    details.answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 22px;}
+    details.answer summary{cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--lime);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary:hover{color:var(--cyan);}
+    details.answer summary::before{content:"+ ";color:var(--cyan);}
+    details.answer[open] summary::before{content:"\2013 ";}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;}
+    table.sample{width:100%;border-collapse:collapse;margin:0 0 22px;font:13px/1.6 var(--mono);background:var(--surface);border:1px solid var(--line);}
+    table.sample th{text-align:left;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:11px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    table.sample td{padding:10px 16px;border-bottom:1px solid var(--line);color:var(--ink);}
+    table.sample tr:last-child td{border-bottom:none;}
+    .back{display:inline-block;margin-top:56px;font:500 12px/1 var(--mono);letter-spacing:.08em;
+      text-transform:uppercase;color:var(--cyan);text-decoration:none;}
+    a{color:var(--cyan);}
+    footer{border-top:1px solid var(--line);padding:28px 32px;color:var(--muted);
+      font:400 12px/1.6 var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    footer a{color:var(--cyan);text-decoration:none;}
+    @media (max-width:640px){ .topbar{gap:18px;padding:0 18px;} .topbar .status{display:none;} }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Primary navigation">
+    <div class="status"><span class="status-dot" aria-hidden="true"></span>Senior data engineer · NYC</div>
+    <a href="../index.html#impact">Impact</a>
+    <a href="../index.html#experience">Experience</a>
+    <a href="../index.html#capabilities">Capabilities</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../blog.html" class="active">Blog</a>
+  </nav>
+
+  <main class="wrap">
+    <article>
+      <div class="kicker">Lesson 11 &nbsp;·&nbsp; Oct 16, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>Finding rows without reading everything: indexes</h1>
+
+      <p>Database management, lesson three. Schemas organized tables; keys protected relationships; today&rsquo;s tool makes big tables <em>fast</em>. Without an index, a filter reads every single row &mdash; a <strong>full table scan</strong>. On ten million rows, that&rsquo;s a slow query. An <strong>index</strong> is the database&rsquo;s book index: a separate, sorted lookup structure on one column that lets the engine jump straight to the matching rows.</p>
+
+      <h2>The code</h2>
+      <pre>-- Without an index, the database checks EVERY row for country = 'Canada'
+SELECT * FROM weather_stations
+WHERE country = 'Canada';
+
+-- Build a lookup structure on the country column, then re-run
+CREATE INDEX idx_stations_country
+ON weather_stations (country);</pre>
+      <p>Reading it piece by piece:</p>
+      <ol>
+        <li><code>CREATE INDEX</code> &mdash; &ldquo;build me a lookup structure&rdquo;. The first build scans the whole table once; afterwards the database keeps it up to date automatically.</li>
+        <li><code>idx_stations_country</code> &mdash; just a name. The <code>idx_table_column</code> convention is the industry standard, so use it and future-you will thank you.</li>
+        <li><code>ON weather_stations (country)</code> &mdash; the table and the column you filter on. Now the re-run of that <code>SELECT</code> skips the full scan and goes straight to Canada&rsquo;s stations. On a tiny table you&rsquo;ll feel nothing; on millions of rows it&rsquo;s the difference between milliseconds and minutes.</li>
+      </ol>
+
+      <h2>In practice</h2>
+      <p>A data engineer indexes the columns that get <strong>filtered, joined, or sorted</strong> &mdash; the <code>WHERE</code>s, <code>ON</code>s, and <code>ORDER BY</code>s of the warehouse&rsquo;s most-run queries. But there&rsquo;s a tradeoff: every <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code> now also has to update the index, so writes get a bit slower and the index eats storage. The rule of thumb: index hot read paths, don&rsquo;t index everything, and don&rsquo;t bother on tiny tables. Fun bonus: every <code>PRIMARY KEY</code> (lesson 10) already gets an index automatically &mdash; that&rsquo;s partly why key-based joins are fast.</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> an index is a database&rsquo;s version of a <code>dict</code>. Looking up <code>my_dict['Canada']</code> jumps straight to the value; scanning a list to find every Canada entry is a full scan. pandas&rsquo; <code>.set_index()</code> gives you the same jump-to-it behavior on a DataFrame column.</p>
+      </div>
+
+      <h2>Further reading</h2>
+      <p><a href="https://www.freecodecamp.org/news/sql-create-index-statement-explained-with-examples/" target="_blank" rel="noopener">SQL Create Index Statement Explained with Examples &mdash; freeCodeCamp</a> (short walkthrough of the CREATE INDEX syntax plus the key tradeoff: indexes speed up reads but can slow down writes when data changes)</p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> <code>weather_stations</code> has an <code>elevation_m</code> column, and your snowpack dashboard runs this filter constantly: <code>WHERE elevation_m &gt; 1000</code>. Write the <code>CREATE INDEX</code> that speeds it up.</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>CREATE INDEX idx_stations_elevation
+ON weather_stations (elevation_m);</pre>
+          <p><strong>Result:</strong> <code>Query OK</code> &mdash; the index is created (0 rows affected, since DDL statements don&rsquo;t return rows). From now on, the database jumps straight to stations above 1000&nbsp;m instead of scanning the whole table. Note the pattern: you indexed the column the query <em>filters</em> on, not the columns it returns.</p>
+        </div>
+      </details>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Arman Pouyaei</span>
+    <a href="../index.html">&larr; Back to portfolio</a>
+  </footer>
+</body>
+</html>
