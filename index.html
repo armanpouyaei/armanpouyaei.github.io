@@ -130,6 +130,12 @@
     .work-pic { margin: 0; background: var(--surface); }
     .work-pic img { width: 100%; height: auto; aspect-ratio: 16/10; object-fit: cover; }
     .work-pic figcaption { font-size: var(--step-small); color: var(--muted); padding: 12px 16px; }
+    .peril-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--surface); padding: 8px; }
+    .peril-grid figure { margin: 0; position: relative; overflow: hidden; }
+    .peril-grid img { width: 100%; height: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; transition: transform .5s ease; }
+    .peril-grid figure:hover img { transform: scale(1.04); }
+    .peril-grid figcaption { position: absolute; left: 0; bottom: 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: rgba(17,17,17,.72); padding: 5px 10px; }
+    @media (max-width: 640px) { .peril-grid { grid-template-columns: repeat(2, 1fr); } }
 
     /* cone : the live thing */
     .cone { margin-top: 34px; background: var(--surface); padding: clamp(20px, 3vw, 36px); }
@@ -286,8 +292,8 @@
 
       <article class="work-row">
         <div>
-          <h3 class="work-name rv">Global storm intelligence</h3>
-          <p class="work-desc rv rv-d1">Lead MSCI's blizzard, dust-storm, and sandstorm modeling program end to end, architecture, AI weather emulation, GPU ensembles, validation, and production delivery.</p>
+          <h3 class="work-name rv">Climate hazard modeling</h3>
+          <p class="work-desc rv rv-d1">Physics-based and machine-learning models for climate hazard perils — severe convective storms (hail, thunderstorm wind, tornado), subsidence and vertical land motion, wildfire, flood, and more. Most recently: leading MSCI’s blizzard, dust-storm, and sandstorm modeling program end to end — architecture, AI weather emulation, GPU ensembles, validation, and production delivery.</p>
           <p class="work-tags rv rv-d2">MSCI · New York · now, PyTorch · JAX · CUDA · extreme-value theory</p>
           <div class="cone rv" id="cone">
             <p class="cone-title">The cone of uncertainty, live</p>
@@ -306,8 +312,15 @@
           </div>
         </div>
         <figure class="work-pic rv">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Hurricane_Katrina_imaged_by_NOAA-16_AVHRR_instrument_%282268-631%29.jpg/1920px-Hurricane_Katrina_imaged_by_NOAA-16_AVHRR_instrument_%282268-631%29.jpg" width="1920" height="1080" alt="Satellite view of Hurricane Katrina from the NOAA-16 instrument" loading="lazy" />
-          <figcaption>The view from orbit, NOAA satellite imagery of Hurricane Katrina, 2005.</figcaption>
+          <div class="peril-grid">
+          <figure><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/9/98/F5_tornado_Elie_Manitoba_2007.jpg/960px-F5_tornado_Elie_Manitoba_2007.jpg" alt="F5 tornado, Elie, Manitoba, 2007" loading="lazy" /><figcaption>Tornado</figcaption></figure>
+          <figure><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Brisbane_November_2014_Hailstorm_-_Hailstones.jpg/960px-Brisbane_November_2014_Hailstorm_-_Hailstones.jpg" alt="Hailstones, Brisbane hailstorm, 2014" loading="lazy" /><figcaption>Hail</figcaption></figure>
+          <figure><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Lick_Fire_on_the_Umatilla_National_Forest_burning_at_night.jpg/960px-Lick_Fire_on_the_Umatilla_National_Forest_burning_at_night.jpg" alt="Lick Fire, Umatilla National Forest, at night" loading="lazy" /><figcaption>Wildfire</figcaption></figure>
+          <figure><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Flooded_houses%2C_Chertsey_%28geograph_3812479%29.jpg/960px-Flooded_houses%2C_Chertsey_%28geograph_3812479%29.jpg" alt="Flooded houses in Chertsey, water up to the garden fences" loading="lazy" /><figcaption>Flood</figcaption></figure>
+          <figure><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/Approaching_dust_storm_%28haboob%29%2C_Cimarron_County%2C_OK.jpg/960px-Approaching_dust_storm_%28haboob%29%2C_Cimarron_County%2C_OK.jpg" alt="Approaching haboob dust storm, Cimarron County, Oklahoma" loading="lazy" /><figcaption>Dust storm</figcaption></figure>
+          <figure><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Blizzard_CYCB.jpg/960px-Blizzard_CYCB.jpg" alt="Blizzard conditions" loading="lazy" /><figcaption>Blizzard</figcaption></figure>
+          </div>
+          <figcaption>Six of the perils, modeled — tornado, hail, wildfire, flood, dust storm, blizzard.</figcaption>
         </figure>
       </article>
 
@@ -433,7 +446,7 @@
       <span>© 2026 Arman Pouyaei</span>
       <span>Senior Data Engineer · MSCI, New York</span>
     </div>
-    <p class="credits">Pictures and footage: <a href="https://commons.wikimedia.org/wiki/File:Hurricane_Katrina_imaged_by_NOAA-16_AVHRR_instrument_(2268-631).jpg">“Hurricane Katrina imaged by NOAA-16 AVHRR instrument (2268-631)”</a> by NOAA, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:BalticServers_data_center.jpg">“BalticServers data center”</a> by BalticServers.com, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Oak_Ridge_-_Kraken_(Cray_XT5).JPG">“Oak Ridge - Kraken (Cray XT5)”</a> by Daderot, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:1650_Jansson_Wind_Rose,_Anemographic_Chart,_or_Map_of_the_Winds_-_Geographicus_-_Anemographica-jannson-1650.jpg">“Tabula Anemographica” (wind-rose chart, 1650)</a> by Jan Janssonius, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Dual_satellite_view_of_Hurricane_Iota_(CIRA_2020-11-17).webm">“Dual satellite view of Hurricane Iota (CIRA 2020-11-17)”</a> by GOES imagery: CSU/CIRA &amp; NOAA, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons.</p>
+    <p class="credits">Pictures and footage: <a href="https://commons.wikimedia.org/wiki/File:F5_tornado_Elie_Manitoba_2007.jpg">“F5 tornado Elie Manitoba 2007”</a> <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Brisbane_November_2014_Hailstorm_-_Hailstones.jpg">“Brisbane 2014 hailstones”</a> <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Lick_Fire_on_the_Umatilla_National_Forest_burning_at_night.jpg">“Lick Fire, Umatilla NF”</a> public domain; <a href="https://commons.wikimedia.org/wiki/File:Flooded_houses,_Chertsey_(geograph_3812479).jpg">“Flooded houses, Chertsey”</a> <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Approaching_dust_storm_(haboob),_Cimarron_County,_OK.jpg">“Cimarron County haboob”</a> <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Blizzard_CYCB.jpg">“Blizzard”</a> <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:BalticServers_data_center.jpg">“BalticServers data center”</a> by BalticServers.com, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Oak_Ridge_-_Kraken_(Cray_XT5).JPG">“Oak Ridge - Kraken (Cray XT5)”</a> by Daderot, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:1650_Jansson_Wind_Rose,_Anemographic_Chart,_or_Map_of_the_Winds_-_Geographicus_-_Anemographica-jannson-1650.jpg">“Tabula Anemographica” (wind-rose chart, 1650)</a> by Jan Janssonius, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Dual_satellite_view_of_Hurricane_Iota_(CIRA_2020-11-17).webm">“Dual satellite view of Hurricane Iota (CIRA 2020-11-17)”</a> by GOES imagery: CSU/CIRA &amp; NOAA, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons.</p>
   </footer>
 
   <script>
