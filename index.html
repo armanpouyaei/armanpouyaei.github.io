@@ -114,6 +114,7 @@
 
     /* work : ledger with pictures */
     .work-row { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(32px, 5vw, 88px); align-items: center; padding: clamp(48px, 6vw, 88px) 0; }
+    .work-row > * { min-width: 0; } /* let nowrap children (e.g. the SQL line) scroll instead of stretching the grid */
     .work-row + .work-row { margin-top: clamp(24px, 3vw, 48px); }
     .work-kicker { font-size: var(--step-small); font-weight: 600; color: var(--accent); margin: 0 0 18px; }
     .work-name { font-size: clamp(34px, 4.6vw, 72px); margin: 0 0 22px; }
@@ -157,13 +158,13 @@
     .prune-ticks { display: flex; justify-content: space-between; margin-bottom: 14px; }
     .prune-ticks span { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
     .prune-ticks span.on { color: var(--accent); }
-    .prune-sql { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--step-small); background: #fff; border: 1px solid #e2e2e2; padding: 10px 14px; margin: 0 0 12px; overflow-x: auto; white-space: nowrap; }
+    .prune-sql { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--step-small); background: #fff; border: 1px solid #e2e2e2; padding: 10px 14px; margin: 0 0 12px; overflow-x: auto; white-space: nowrap; min-height: calc(10px * 2 + 1.5em); box-sizing: border-box; }
     .prune-grid { display: grid; grid-template-columns: auto repeat(12, 1fr); gap: 5px; align-items: center; margin-bottom: 16px; }
     .prune-m { font-size: 10px; font-weight: 700; color: var(--muted); text-align: center; text-transform: uppercase; }
     .prune-r { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding-right: 4px; }
     .prune-cell { aspect-ratio: 1; background: var(--accent); opacity: 1; transition: opacity .3s ease, background .3s ease; min-width: 0; }
     .prune-cell.off { background: #d8d8d8; opacity: .45; }
-    .prune-readout { font-size: var(--step-small); margin: 0; font-variant-numeric: tabular-nums; }
+    .prune-readout { font-size: var(--step-small); margin: 0; font-variant-numeric: tabular-nums; min-height: 3em; }
     .prune-readout b { font-weight: 700; }
 
     /* full-bleed picture bands */
@@ -341,7 +342,7 @@
           <p class="work-tags rv rv-d2">Platform · AWS Batch · S3 · Docker · Dask · Slurm on HPC</p>
           <div class="prune rv" id="prune">
             <p class="prune-title">Partition pruning</p>
-            <p class="prune-sub">One dataset, 48 partitions — 12 months × 4 regions, 25 TB each. Slide from a full table scan to a pinpoint query: each stop adds a filter, and the engine skips every partition it doesn’t need. Reading 1 partition instead of 48 is what makes petabyte-scale affordable.</p>
+            <p class="prune-sub">One dataset, 48 partitions — 12 months × 4 regions, 25 TB each. Reading 1 partition instead of 48 is what makes petabyte-scale affordable.</p>
             <div class="prune-slider">
               <label for="pslide">Query selectivity</label>
               <input type="range" id="pslide" min="0" max="4" step="1" value="0" aria-label="Query selectivity, from full scan to pinpoint query" />
