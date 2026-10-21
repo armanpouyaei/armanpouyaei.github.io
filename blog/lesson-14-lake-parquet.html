@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="data:," />
+  <title>Your table is a folder of files: Parquet — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 14: files + Parquet — the data-lakes arc begins. A lake is just files on object storage, and Parquet is the default file format: columnar storage, column pruning with columns=[...], built-in compression, a typed schema baked in, and why DuckDB and Spark treat it as the default." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+    :root{
+      --bg:#ffffff; --surface:#f4f4f4; --ink:#111111; --muted:#6b6b6b;
+      --accent:#1a4be0; --accent-ink:#ffffff; --line:#e3e3e3;
+      --display:"Big Shoulders","Arial Narrow",sans-serif;
+      --text:"Public Sans",system-ui,sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --step-small:clamp(0.8125rem,0.79rem + 0.1vw,0.875rem);
+      --step-body:clamp(1.0625rem,1rem + 0.25vw,1.1875rem);
+      --step-lead:clamp(1.25rem,1.1rem + 0.7vw,1.625rem);
+      --step-head:clamp(2.5rem,1.2rem + 5vw,5.5rem);
+      --margin:clamp(16px,4vw,64px);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;font-family:var(--text);font-size:var(--step-body);
+      line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;}
+    h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:0.95;margin:0;}
+    a{color:inherit;}
+    ::selection{background:var(--accent);color:var(--accent-ink);}
+    img{display:block;max-width:100%;}
+    .topbar{display:flex;align-items:center;gap:clamp(14px,2.5vw,32px);
+      padding:20px var(--margin);border-bottom:1px solid var(--line);}
+    .wordmark{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:0.01em;font-size:20px;text-decoration:none;margin-right:auto;color:var(--ink);}
+    .topbar nav{display:flex;gap:clamp(12px,2vw,28px);}
+    .topbar nav a{text-decoration:none;font-size:var(--step-small);font-weight:600;color:var(--ink);padding:6px 2px;}
+    .topbar nav a:hover,.topbar nav a.active{color:var(--accent);}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;
+      background:var(--accent);color:var(--accent-ink);font:600 12px/1 var(--text);
+      text-decoration:none;white-space:nowrap;border:0;cursor:pointer;
+      transition:transform .18s ease,background .18s ease;}
+    .btn:hover{background:#1538b3;transform:translateY(-1px);}
+    .article{max-width:780px;margin:0 auto;padding:clamp(48px,7vw,96px) var(--margin) clamp(80px,10vw,140px);}
+    .kicker{font:600 var(--step-small)/1.6 var(--text);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--accent);margin-bottom:20px;}
+    .article h1{font-size:clamp(2.1rem,1.3rem + 4vw,3.8rem);margin:0 0 36px;}
+    .article h2{font-size:clamp(1.35rem,1.1rem + 1.4vw,1.9rem);margin:52px 0 16px;}
+    .article p,.article li{line-height:1.75;font-size:var(--step-body);color:var(--ink);}
+    .article p{margin:0 0 20px;}
+    .article ol,.article ul{margin:0 0 22px;padding-left:24px;}
+    .article li{margin-bottom:10px;}
+    .article a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;}
+    .article a:hover{color:#1538b3;}
+    pre{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+      padding:20px 22px;overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 24px;}
+    p code,li code{font-family:var(--mono);font-size:.85em;background:var(--surface);
+      color:var(--accent);padding:2px 7px;border-radius:4px;}
+    .callout{border-left:3px solid var(--accent);background:var(--surface);padding:18px 22px;margin:0 0 24px;}
+    .callout p{margin:0;}
+    details.answer{background:var(--surface);border:1px solid var(--line);padding:18px 22px;margin:0 0 24px;}
+    details.answer summary{cursor:pointer;font:600 12px/1.4 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--ink);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary::before{content:"+ ";color:var(--accent);}
+    details.answer[open] summary::before{content:"– ";}
+    details.answer summary:hover{color:var(--accent);}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;background:#ffffff;}
+    .back{display:inline-block;margin-top:60px;font:600 12px/1 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--accent);text-decoration:none;}
+    .back:hover{color:#1538b3;}
+    .footer{background:var(--ink);color:var(--bg);padding:44px var(--margin) 30px;}
+    .footer-word{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:.9;font-size:clamp(40px,9vw,150px);margin:0 0 30px;color:var(--bg);}
+    .footer-meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+      font-size:13px;color:rgba(255,255,255,.65);}
+    .footer-meta a{color:var(--bg);text-decoration:none;font-weight:600;}
+    .footer-meta a:hover{color:#9db4ff;}
+    @media (max-width:900px){
+      .topbar nav a:not(:last-child){display:none;}
+    }
+    @media (max-width:600px){
+      .wordmark{font-size:16px;white-space:nowrap;}
+      .topbar{padding:16px var(--margin);}
+      .topbar .btn{font-size:12px;padding:0 14px;}
+    }
+
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="../index.html">Arman Pouyaei</a>
+    <nav aria-label="Primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#capabilities">Capabilities</a>
+      <a href="../index.html#contact">Contact</a>
+      <a href="../blog.html" class="active">Blog</a>
+    </nav>
+    <a class="btn" href="mailto:arman.pouyaei@gmail.com">Start a conversation</a>
+  </header>
+
+  <main class="article">
+    <article>
+      <div class="kicker">Lesson 14 &nbsp;·&nbsp; Oct 21, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>Your table is a folder of files: Parquet</h1>
+
+      <p>Data lakes, lesson one — and a change of scenery: we&rsquo;re leaving the warehouse. A <strong>data warehouse</strong> keeps your rows inside a managed database. A <strong>data lake</strong> is far simpler: it is just <em>files</em> — usually Parquet files — sitting on object storage (S3, GCS). A &ldquo;table&rdquo; in a lake is really a folder of files. Today&rsquo;s idea: <strong>Parquet</strong>, the default file format, stores data <em>column by column</em> instead of row by row, so a query that only needs one column can skip everything else.</p>
+
+      <h2>The code</h2>
+      <pre>import pandas as pd
+
+df = pd.DataFrame({
+    "station_id": [1, 2, 3],
+    "temp_c":     [18.4, 21.0, 16.2],
+    "humidity":   [72, 55, 81],
+    "lat":        [40.7, 41.1, 39.9],
+    "lon":        [-74.0, -73.9, -75.1],
+})
+
+# write to the lake — one line
+df.to_parquet("s3://storm-lake/readings.parquet")
+
+# later: read back ONLY the columns you need
+hot = pd.read_parquet("s3://storm-lake/readings.parquet",
+                      columns=["station_id", "temp_c"])</pre>
+      <p>The magic line is the last one. With CSV, pandas would have to parse all five columns to give you two. With Parquet, <code>columns=[...]</code> triggers <strong>column pruning</strong>: the <code>humidity</code>, <code>lat</code>, and <code>lon</code> chunks are never touched on disk — only the two columns you asked for are read.</p>
+
+      <h2>In practice</h2>
+      <p>CSV stores row by row; Parquet stores column by column, and everything else follows from that. Queries read only the columns they name (5–10&times; smaller files, 10–100&times; faster scans than CSV on wide tables). Values of the same type sitting together compress much better (Snappy, Zstd). The file carries a typed schema — no more &ldquo;is this a string or a float?&rdquo; guessing. And each chunk keeps min/max statistics, so engines can skip whole blocks that can&rsquo;t match your filter.</p>
+      <p>This connects straight to your world: Parquet is the lingua franca of your stack. It is the default file format PySpark writes, and DuckDB reads it directly with <code>SELECT temp_c FROM read_parquet('readings.parquet')</code> — SQL straight over files, no loading step. That folder-of-files idea is also the seed of everything coming next in this arc: partitioning (folders within folders) and table formats like Delta Lake and Iceberg (folders + a metadata log).</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> think of <code>df.to_parquet()</code> as a smarter <code>to_csv()</code> — typed, compressed, and queryable by any engine. And <code>read_parquet(columns=[...])</code> is like doing <code>df[["station_id", "temp_c"]]</code> <em>before the data even leaves disk</em> — you never pay to load what you won&rsquo;t use.</p>
+      </div>
+
+      <h2>Further reading</h2>
+      <p><a href="https://motherduck.com/learn/why-choose-parquet-table-file-format/" target="_blank" rel="noopener">What Is Parquet? Columnar File Format vs CSV, Avro &amp; ORC &mdash; MotherDuck</a> (a short, visual, beginner-friendly rundown — including DuckDB benchmark numbers on a real NYC taxi dataset)</p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> your pipeline lands hourly storm readings (<code>station_id</code>, <code>temp_c</code>, <code>humidity</code>, <code>lat</code>, <code>lon</code>) into the lake, and most downstream jobs only need <code>station_id</code> + <code>temp_c</code>. Write the two pandas lines: (1) save the DataFrame as Parquet to <code>s3://storm-lake/readings.parquet</code>, and (2) read back only <code>station_id</code> and <code>temp_c</code>. Bonus: in one sentence, what does the read skip?</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>df.to_parquet("s3://storm-lake/readings.parquet")
+
+hot = pd.read_parquet("s3://storm-lake/readings.parquet",
+                      columns=["station_id", "temp_c"])</pre>
+          <p><strong>Result:</strong> the read skips the <code>humidity</code>, <code>lat</code>, and <code>lon</code> column chunks on disk — column pruning. The job loads two columns instead of five, which is exactly why Parquet scans run 10–100&times; faster than CSV on wide tables.</p>
+        </div>
+      </details>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-word">Arman Pouyaei</p>
+    <div class="footer-meta">
+      <span>© 2026 Arman Pouyaei</span>
+      <a href="../index.html">&larr; Back to portfolio</a>
+    </div>
+  </footer>
+</body>
+</html>
