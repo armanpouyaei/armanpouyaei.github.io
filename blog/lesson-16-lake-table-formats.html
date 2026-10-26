@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="data:," />
+  <title>Parquet plus a ledger: open table formats — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 16: table formats — Delta Lake, Apache Iceberg, and Hudi add a metadata ledger on top of Parquet files, giving the data lake ACID transactions, upserts with MERGE INTO, time travel, and compaction." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+    :root{
+      --bg:#ffffff; --surface:#f4f4f4; --ink:#111111; --muted:#6b6b6b;
+      --accent:#1a4be0; --accent-ink:#ffffff; --line:#e3e3e3;
+      --display:"Big Shoulders","Arial Narrow",sans-serif;
+      --text:"Public Sans",system-ui,sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --step-small:clamp(0.8125rem,0.79rem + 0.1vw,0.875rem);
+      --step-body:clamp(1.0625rem,1rem + 0.25vw,1.1875rem);
+      --step-lead:clamp(1.25rem,1.1rem + 0.7vw,1.625rem);
+      --step-head:clamp(2.5rem,1.2rem + 5vw,5.5rem);
+      --margin:clamp(16px,4vw,64px);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;font-family:var(--text);font-size:var(--step-body);
+      line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;}
+    h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:0.95;margin:0;}
+    a{color:inherit;}
+    ::selection{background:var(--accent);color:var(--accent-ink);}
+    img{display:block;max-width:100%;}
+    .topbar{display:flex;align-items:center;gap:clamp(14px,2.5vw,32px);
+      padding:20px var(--margin);border-bottom:1px solid var(--line);}
+    .wordmark{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:0.01em;font-size:20px;text-decoration:none;margin-right:auto;color:var(--ink);}
+    .topbar nav{display:flex;gap:clamp(12px,2vw,28px);}
+    .topbar nav a{text-decoration:none;font-size:var(--step-small);font-weight:600;color:var(--ink);padding:6px 2px;}
+    .topbar nav a:hover,.topbar nav a.active{color:var(--accent);}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;
+      background:var(--accent);color:var(--accent-ink);font:600 12px/1 var(--text);
+      text-decoration:none;white-space:nowrap;border:0;cursor:pointer;
+      transition:transform .18s ease,background .18s ease;}
+    .btn:hover{background:#1538b3;transform:translateY(-1px);}
+    .article{max-width:780px;margin:0 auto;padding:clamp(48px,7vw,96px) var(--margin) clamp(80px,10vw,140px);}
+    .kicker{font:600 var(--step-small)/1.6 var(--text);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--accent);margin-bottom:20px;}
+    .article h1{font-size:clamp(2.1rem,1.3rem + 4vw,3.8rem);margin:0 0 36px;}
+    .article h2{font-size:clamp(1.35rem,1.1rem + 1.4vw,1.9rem);margin:52px 0 16px;}
+    .article p,.article li{line-height:1.75;font-size:var(--step-body);color:var(--ink);}
+    .article p{margin:0 0 20px;}
+    .article ol,.article ul{margin:0 0 22px;padding-left:24px;}
+    .article li{margin-bottom:10px;}
+    .article a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;}
+    .article a:hover{color:#1538b3;}
+    pre{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+      padding:20px 22px;overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 24px;}
+    p code,li code{font-family:var(--mono);font-size:.85em;background:var(--surface);
+      color:var(--accent);padding:2px 7px;border-radius:4px;}
+    .callout{border-left:3px solid var(--accent);background:var(--surface);padding:18px 22px;margin:0 0 24px;}
+    .callout p{margin:0;}
+    details.answer{background:var(--surface);border:1px solid var(--line);padding:18px 22px;margin:0 0 24px;}
+    details.answer summary{cursor:pointer;font:600 12px/1.4 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--ink);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary::before{content:"+ ";color:var(--accent);}
+    details.answer[open] summary::before{content:"– ";}
+    details.answer summary:hover{color:var(--accent);}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;background:#ffffff;}
+    .back{display:inline-block;margin-top:60px;font:600 12px/1 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--accent);text-decoration:none;}
+    .back:hover{color:#1538b3;}
+    .footer{background:var(--ink);color:var(--bg);padding:44px var(--margin) 30px;}
+    .footer-word{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:.9;font-size:clamp(40px,9vw,150px);margin:0 0 30px;color:var(--bg);}
+    .footer-meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+      font-size:13px;color:rgba(255,255,255,.65);}
+    .footer-meta a{color:var(--bg);text-decoration:none;font-weight:600;}
+    .footer-meta a:hover{color:#9db4ff;}
+    @media (max-width:900px){
+      .topbar nav a:not(:last-child){display:none;}
+    }
+    @media (max-width:600px){
+      .wordmark{font-size:16px;white-space:nowrap;}
+      .topbar{padding:16px var(--margin);}
+      .topbar .btn{font-size:12px;padding:0 14px;}
+    }
+
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="../index.html">Arman Pouyaei</a>
+    <nav aria-label="Primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#capabilities">Capabilities</a>
+      <a href="../index.html#contact">Contact</a>
+      <a href="../blog.html" class="active">Blog</a>
+    </nav>
+    <a class="btn" href="mailto:arman.pouyaei@gmail.com">Start a conversation</a>
+  </header>
+
+  <main class="article">
+    <article>
+      <div class="kicker">Lesson 16 &nbsp;·&nbsp; Oct 23, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>Parquet plus a ledger: open table formats</h1>
+
+      <p>Yesterday&rsquo;s &ldquo;table&rdquo; was a folder of Parquet files. It worked — until you needed to fix a bad row. A folder of files is append-only: you can&rsquo;t update a reading, two writers landing at once can corrupt the layout, and there&rsquo;s no undo. <strong>Open table formats</strong> — Delta Lake, Apache Iceberg, and Apache Hudi — keep the exact same Parquet files but add a metadata layer on top: a ledger that records every change as a transaction. That ledger is what turns the folder into a table that behaves like a database.</p>
+
+      <h2>The code</h2>
+      <pre>MERGE INTO storm_readings AS t
+USING new_readings AS s
+  ON t.station_id = s.station_id
+ AND t.measured_at = s.measured_at
+WHEN MATCHED THEN UPDATE SET t.temp_c = s.temp_c
+WHEN NOT MATCHED THEN INSERT *;</pre>
+      <p>This is Delta Lake&rsquo;s <code>MERGE INTO</code> — the upsert every table format supports. The <code>ON</code> clause matches each incoming row against the table on the composite key (<code>station_id</code>, <code>measured_at</code>). A corrected reading that matches an existing row overwrites just that row&rsquo;s <code>temp_c</code>; a genuinely new row gets inserted. No rewriting the whole folder.</p>
+
+      <h2>In practice</h2>
+      <p>That ledger buys four things plain folders can&rsquo;t do. <strong>Upserts, updates, and deletes:</strong> row-level changes on immutable Parquet — fix bad storm-sensor readings in place instead of rewriting terabytes. <strong>ACID transactions:</strong> concurrent writers append to the same log atomically, so hourly sensor batches landing at once can&rsquo;t corrupt the table — your Lesson 13 knowledge, now working on the lake. <strong>Time travel:</strong> every change is a new version, so you can query the table exactly as it looked last Tuesday, before a bad batch landed. <strong>Compaction:</strong> the format quietly merges yesterday&rsquo;s thousands of tiny files into big ones — the cure for the Lesson 15 small-files problem.</p>
+      <p>Which format do you actually need to know? Delta Lake is the Spark-native one — tightest with PySpark, and it invented the <code>_delta_log</code> idea. Apache Iceberg is the engine-neutral one: Spark, Trino, DuckDB, and Flink all read the same table without copying, which is why it&rsquo;s become the default for multi-engine teams. Hudi leans toward streaming and high-frequency upserts. In your world: hourly sensor or satellite batches land as tiny files, the table compacts them automatically, <code>MERGE</code> folds in corrected observations, and every engine on the team reads the same table.</p>
+
+      <div class="callout">
+        <p><strong>Python bridge:</strong> think of the transaction log as <code>git</code> for your data folder. Every <code>MERGE</code> or append is a commit, time travel is <code>git checkout &lt;version&gt;</code>, and the Parquet files are the working tree. You can&rsquo;t get any of this from plain pandas + folders — that gap is exactly why these formats exist.</p>
+      </div>
+
+      <h2>Further reading</h2>
+      <p><a href="https://datus.ai/blog/what-is-apache-iceberg/" target="_blank" rel="noopener">What Is Apache Iceberg? — Datus blog</a> (a beginner-friendly intro to table formats with an Iceberg vs Delta Lake comparison)</p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> you have a Delta table <code>storm_readings</code> and a <code>corrections</code> table with fixed <code>temp_c</code> values for some <code>station_id</code>/<code>measured_at</code> pairs. Write a <code>MERGE INTO</code> that updates <code>temp_c</code> on the rows that match — but <em>ignores</em> rows that don&rsquo;t match (no inserting). Which single clause from today&rsquo;s example do you drop?</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>MERGE INTO storm_readings AS t
+USING corrections AS s
+  ON t.station_id = s.station_id
+ AND t.measured_at = s.measured_at
+WHEN MATCHED THEN UPDATE SET t.temp_c = s.temp_c;</pre>
+          <p><strong>Result:</strong> drop the <code>WHEN NOT MATCHED THEN INSERT *;</code> clause. Matched rows get their <code>temp_c</code> corrected; correction rows with no match are simply ignored, and no new stations are added to the table. A corrections-only <code>MERGE</code> is one of the most common shapes in real pipelines.</p>
+        </div>
+      </details>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-word">Arman Pouyaei</p>
+    <div class="footer-meta">
+      <span>© 2026 Arman Pouyaei</span>
+      <a href="../index.html">&larr; Back to portfolio</a>
+    </div>
+  </footer>
+</body>
+</html>
