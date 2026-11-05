@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="data:," />
+  <title>Cloud-Optimized GeoTIFFs: read only the pixels you need — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 28: Cloud-Optimized GeoTIFFs — a GeoTIFF laid out for the cloud, with internal tiles and overviews, so readers fetch only the pixels they need. Phase 2 of the data engineering fundamentals series." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+    :root{
+      --bg:#ffffff; --surface:#f4f4f4; --ink:#111111; --muted:#6b6b6b;
+      --accent:#1a4be0; --accent-ink:#ffffff; --line:#e3e3e3;
+      --display:"Big Shoulders","Arial Narrow",sans-serif;
+      --text:"Public Sans",system-ui,sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --step-small:clamp(0.8125rem,0.79rem + 0.1vw,0.875rem);
+      --step-body:clamp(1.0625rem,1rem + 0.25vw,1.1875rem);
+      --step-lead:clamp(1.25rem,1.1rem + 0.7vw,1.625rem);
+      --step-head:clamp(2.5rem,1.2rem + 5vw,5.5rem);
+      --margin:clamp(16px,4vw,64px);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;font-family:var(--text);font-size:var(--step-body);
+      line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;}
+    h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:0.95;margin:0;}
+    a{color:inherit;}
+    ::selection{background:var(--accent);color:var(--accent-ink);}
+    img{display:block;max-width:100%;}
+    .topbar{display:flex;align-items:center;gap:clamp(14px,2.5vw,32px);
+      padding:20px var(--margin);border-bottom:1px solid var(--line);}
+    .wordmark{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:0.01em;font-size:20px;text-decoration:none;margin-right:auto;color:var(--ink);}
+    .topbar nav{display:flex;gap:clamp(12px,2vw,28px);}
+    .topbar nav a{text-decoration:none;font-size:var(--step-small);font-weight:600;color:var(--ink);padding:6px 2px;}
+    .topbar nav a:hover,.topbar nav a.active{color:var(--accent);}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;
+      background:var(--accent);color:var(--accent-ink);font:600 12px/1 var(--text);
+      text-decoration:none;white-space:nowrap;border:0;cursor:pointer;
+      transition:transform .18s ease,background .18s ease;}
+    .btn:hover{background:#1538b3;transform:translateY(-1px);}
+    .article{max-width:780px;margin:0 auto;padding:clamp(48px,7vw,96px) var(--margin) clamp(80px,10vw,140px);}
+    .kicker{font:600 var(--step-small)/1.6 var(--text);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--accent);margin-bottom:20px;}
+    .article h1{font-size:clamp(2.1rem,1.3rem + 4vw,3.8rem);margin:0 0 36px;}
+    .article h2{font-size:clamp(1.35rem,1.1rem + 1.4vw,1.9rem);margin:52px 0 16px;}
+    .article p,.article li{line-height:1.75;font-size:var(--step-body);color:var(--ink);}
+    .article p{margin:0 0 20px;}
+    .article ol,.article ul{margin:0 0 22px;padding-left:24px;}
+    .article li{margin-bottom:10px;}
+    .article a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;}
+    .article a:hover{color:#1538b3;}
+    pre{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+      padding:20px 22px;overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 24px;}
+    p code,li code{font-family:var(--mono);font-size:.85em;background:var(--surface);
+      color:var(--accent);padding:2px 7px;border-radius:4px;}
+    .callout{border-left:3px solid var(--accent);background:var(--surface);padding:18px 22px;margin:0 0 24px;}
+    .callout p{margin:0;}
+    details.answer{background:var(--surface);border:1px solid var(--line);padding:18px 22px;margin:0 0 24px;}
+    details.answer summary{cursor:pointer;font:600 12px/1.4 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--ink);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary::before{content:"+ ";color:var(--accent);}
+    details.answer[open] summary::before{content:"– ";}
+    details.answer summary:hover{color:var(--accent);}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;background:#ffffff;}
+    .back{display:inline-block;margin-top:60px;font:600 12px/1 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--accent);text-decoration:none;}
+    .back:hover{color:#1538b3;}
+    .footer{background:var(--ink);color:var(--bg);padding:44px var(--margin) 30px;}
+    .footer-word{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:.9;font-size:clamp(40px,9vw,150px);margin:0 0 30px;color:var(--bg);}
+    .footer-meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+      font-size:13px;color:rgba(255,255,255,.65);}
+    .footer-meta a{color:var(--bg);text-decoration:none;font-weight:600;}
+    .footer-meta a:hover{color:#9db4ff;}
+    @media (max-width:900px){
+      .topbar nav a:not(:last-child){display:none;}
+    }
+    @media (max-width:600px){
+      .wordmark{font-size:16px;white-space:nowrap;}
+      .topbar{padding:16px var(--margin);}
+      .topbar .btn{font-size:12px;padding:0 14px;}
+    }
+
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="../index.html">Arman Pouyaei</a>
+    <nav aria-label="Primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#capabilities">Capabilities</a>
+      <a href="../index.html#contact">Contact</a>
+      <a href="../blog.html" class="active">Blog</a>
+    </nav>
+    <a class="btn" href="mailto:arman.pouyaei@gmail.com">Start a conversation</a>
+  </header>
+
+  <main class="article">
+    <article>
+      <div class="kicker">Lesson 28 &nbsp;·&nbsp; Nov 10, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>Cloud-Optimized GeoTIFFs: read only the pixels you need</h1>
+
+      <p>A plain GeoTIFF stores its pixels in long horizontal strips, so reading one small county out of a national file can mean downloading nearly all of it. A Cloud-Optimized GeoTIFF (COG) is the same GeoTIFF format with a smarter internal layout — built so a reader on the other side of the internet can fetch just the pixels it needs, and nothing else.</p>
+
+      <h2>The code</h2>
+      <pre># One-time conversion (GDAL command line):
+#   gdal_translate rainfall.tif rainfall_cog.tif -of COG
+
+# Later, from anywhere: read one window of the file, in place
+import rasterio
+from rasterio.windows import Window
+
+with rasterio.open("s3://lake/rainfall_cog.tif") as src:
+    data = src.read(1, window=Window(0, 0, 512, 512))
+
+print(data.shape)   # (512, 512) — only those tiles crossed the network</pre>
+
+      <h2>In practice</h2>
+      <p>Three layout choices do the work. <strong>Internal tiling:</strong> pixels are stored in small square blocks (often 512 by 512) instead of strips, so one area of the map is one contiguous chunk of the file. <strong>Overviews:</strong> shrunken copies of the whole image at several zoom levels are baked in, so a zoomed-out map reads a tiny overview instead of the full-resolution pixels. <strong>Header first:</strong> the file's table of contents sits at the front, so a reader learns where every tile lives from the first few kilobytes.</p>
+      <p>Put together, a COG-aware reader (rasterio, GDAL, most map servers) uses HTTP range requests: fetch the header, fetch the overview or the handful of tiles covering your window, done. It is exactly the trick from the last two weeks in new clothes — Parquet reads only the columns and row groups it needs; a COG reads only the tiles and zoom level it needs. Read less, over the network, on purpose.</p>
+      <p>In practice, COG is the default way raster data is published now: satellite imagery, elevation, land cover, and weather grids sit in cloud buckets as COGs, usually catalogued with STAC metadata so you can search by place and time before reading a single pixel. Lesson 27's rainfall grid, stored for real, would be one of these.</p>
+      <p>Python bridge: with rasterio, opening a COG by URL looks exactly like opening a local file — the range requests happen under the hood. The skill is not the code; it is knowing to ask for a window instead of reading band 1 whole.</p>
+
+      <h2>Further reading</h2>
+      <p><a href="https://guide.cloudnativegeo.org/cloud-optimized-geotiffs/intro.html" target="_blank" rel="noopener">Cloud-Optimized GeoTIFFs — Cloud-Native Geospatial Formats Guide</a> (what makes a GeoTIFF cloud-optimized, from the same guide as the GeoParquet lesson)</p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> a map app first shows all of New Jersey at low zoom, then a user zooms into Princeton. For each step, which part of a COG gets read — and why would a plain GeoTIFF be slower at both steps?</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <p><strong>Result:</strong> at low zoom the app reads one of the baked-in overviews — a small, pre-shrunk copy of the whole state — instead of downsampling billions of full-resolution pixels on the fly. Zoomed into Princeton, it reads only the few internal tiles that cover Princeton, fetched with range requests. A plain GeoTIFF stores pixels in strips and has no overviews, so both steps drag most of the file across the network before a single pixel can be shown.</p>
+        </div>
+      </details>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-word">Arman Pouyaei</p>
+    <div class="footer-meta">
+      <span>© 2026 Arman Pouyaei</span>
+      <a href="../index.html">&larr; Back to portfolio</a>
+    </div>
+  </footer>
+</body>
+</html>
