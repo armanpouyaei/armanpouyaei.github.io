@@ -131,6 +131,16 @@
       .arcade-wrap{padding:0 var(--margin) clamp(90px,10vw,150px);}
   </style>
   <style>
+    /* Climate Arcade palette repair: the game script reads its colors from
+       getComputedStyle(document.documentElement); the game variables were scoped
+       to .arcade-stage during the site-chrome integration, which left them empty
+       at the document root and broke every canvas color. Restore the artifact's
+       exact palette on the document root (theme variables only; the site chrome
+       uses its own namespaced variables and is unaffected). */
+    html{color-scheme:light dark;--page:#d7d0bd; --grid:rgba(53,50,39,.08); --ink:#20211c; --muted:#666557; --case:#ded6be; --edge:#7d7869; --highlight:#f2ecd8; --screen:#07131a; --screen-edge:#1c282b; --phosphor:#c7f7d0; --dim:#76a986; --sun:#ffd36a; --danger:#ef765f; --ice:#9fe5f0; --button:#272923; --button-ink:#f4f0df; --focus:#9a2c22; --shadow:rgba(35,32,24,.24); --glow:rgba(80,225,170,.08); --case-deep:#b3ab90; --bezel:#3b3e37; --bezel-hi:#5f6357; --gloss:rgba(255,255,255,.16); --spot:rgba(255,255,255,.35);}
+    @media (prefers-color-scheme:dark){html{--page:#171916; --grid:rgba(215,226,207,.04); --ink:#edf1e8; --muted:#aeb5aa; --case:#33372f; --edge:#131612; --highlight:#4b5046; --screen:#030c12; --screen-edge:#171f20; --phosphor:#c9f8d2; --dim:#7eae89; --sun:#ffd976; --danger:#ff8874; --ice:#a9edf6; --button:#e1dfd4; --button-ink:#181a17; --focus:#ff8c7f; --shadow:rgba(0,0,0,.48); --glow:rgba(80,225,170,.07); --case-deep:#0a0c0a; --bezel:#0a0c0a; --bezel-hi:#3d423b; --gloss:rgba(255,255,255,.09); --spot:rgba(160,220,255,.07);}}
+  </style>
+  <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Press+Start+2P&display=swap');
 .arcade-stage{color-scheme: light dark;
       --page:#d7d0bd; --grid:rgba(53,50,39,.08); --ink:#20211c; --muted:#666557;
