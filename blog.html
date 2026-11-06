@@ -118,7 +118,7 @@
     .footer-meta a{color:var(--bg);text-decoration:none;font-weight:600;}
     .footer-meta a:hover{color:#9db4ff;}
     @media (max-width:900px){
-      .topbar nav a:not(:last-child){display:none;}
+      .topbar nav a:not(:nth-last-child(-n+2)){display:none;}
       .post-card{grid-template-columns:1fr;gap:12px;}
       .post-num{font-size:2rem;}
     }
@@ -139,6 +139,7 @@
       <a href="index.html#capabilities">Capabilities</a>
       <a href="index.html#contact">Contact</a>
       <a href="blog.html" class="active">Blog</a>
+      <a href="climate-arcade/">Climate Arcade</a>
     </nav>
     <a class="btn" href="mailto:arman.pouyaei@gmail.com">Start a conversation</a>
   </header>
