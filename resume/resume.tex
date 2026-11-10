@@ -4,12 +4,12 @@
 % commits resume/Arman_Pouyaei_Resume.pdf, which the site's "Download résumé"
 % button serves directly.
 % Section titles: minimal professional style (bold, no rule, no color).
+% Content: quant / weather-research variant adopted Nov 10, 2026 — replaced
+% the general version at Arman's request (adds GRIB2/BUFR, ERA5/MERRA-2,
+% radar, ENSO/MJO/NAO, forecast-verification and hindcast/backtest framing).
 \documentclass[10pt]{article}
 
-\usepackage[utf8]{inputenc} % no-op under XeTeX (UTF-8 is native there)
-% T1 font encoding is for pdfLaTeX only. The browser renderer compiles with
-% XeTeX, which uses Unicode (TU) fonts natively — requesting T1 there asks
-% for EC-encoded metrics the web TeX Live bundle does not ship.
+\usepackage[utf8]{inputenc}
 \ifx\XeTeXrevision\undefined
   \usepackage[T1]{fontenc}
 \fi
@@ -19,15 +19,13 @@
 \usepackage{titlesec}
 \usepackage{hyperref}
 
-\definecolor{accent}{HTML}{0E6E6B} % deep teal
+\definecolor{accent}{HTML}{0E6E6B}
 \hypersetup{colorlinks=true,urlcolor=accent,linkcolor=accent}
 
-% Section titles: minimal professional style — bold, ragged right,
-% no rule, no color. Maximum ATS-friendliness.
 \titleformat{\section}{
   \vspace{-2pt}\raggedright\large\bfseries
 }{}{0em}{}[\vspace{-4pt}]
-\titlespacing*{\section}{0pt}{10pt}{6pt}
+\titlespacing*{\section}{0pt}{8pt}{6pt}
 
 \setlist[itemize]{leftmargin=1.3em,itemsep=0.1ex,topsep=0.2ex,parsep=0pt}
 \setlist[description]{leftmargin=0pt,itemsep=0.25ex,topsep=0.3ex,parsep=0pt,font=\normalfont\bfseries}
@@ -35,7 +33,6 @@
 \pagestyle{empty}
 \raggedbottom
 
-% \job{title}{org, location}{dates}{subtitle (may be empty)}
 \newcommand{\job}[4]{%
   \par\vspace{0.5ex}\noindent\textbf{#1} \hfill #3\\%
   \noindent\textit{#2}%
@@ -43,7 +40,6 @@
   \vspace{-0.4ex}%
 }
 
-% \school{degree}{school}{dates}{note (may be empty)}
 \newcommand{\school}[4]{%
   \par\vspace{0.5ex}\noindent\textbf{#1} \hfill #3\\%
   \noindent\textit{#2}%
@@ -71,10 +67,14 @@ optimization. Currently leads a global severe-storm hazard modeling program
 end to end --- AI-based weather emulation, GPU-accelerated ensemble
 forecasting, extreme value theory, physics-based transport and emission
 modeling, and forward-looking scenario design --- from solution architecture
-through production delivery. Works fluently in Python across HPC and cloud at
-petabyte scale, leads and mentors engineering teams, and translates technical
-findings into plain-language recommendations through visualization,
-prototypes, and executive briefings. 30+ peer-reviewed publications.
+through production delivery. Core discipline: extracting predictive
+signals from large weather datasets and validating them by hindcast
+(backtest) evaluation on forecasts as issued, not after-the-fact analyses.
+Works fluently in
+Python across HPC and cloud at petabyte scale, leads and mentors engineering
+teams, and translates technical findings into plain-language recommendations
+through visualization, prototypes, and executive briefings. 30+ peer-reviewed
+publications.
 
 % ---------- Skills ----------
 \section*{Technical Skills}
@@ -83,19 +83,26 @@ prototypes, and executive briefings. 30+ peer-reviewed publications.
     clustering, Bayesian inference and state estimation, time-series
     forecasting, extreme value theory (GEV/GPD, peaks-over-threshold) and
     return-period estimation, probabilistic and ensemble forecasting,
-    uncertainty quantification, hypothesis testing, constrained optimization.
+    uncertainty quantification, forecast verification and skill scoring,
+    hindcast (backtest) validation, hypothesis testing, constrained
+    optimization.
   \item[Machine Learning \& AI:] PyTorch, JAX, scikit-learn,
     TensorFlow; XGBoost, Random Forest, CNN/UNet, GNN, PINN, neural operators
     and diffusion-based generative models; AI weather emulators; multi-GPU
     distributed training and inference; LLM and NLP tooling, agentic and
     retrieval workflows.
-  \item[Physical \& Numerical Modeling:] Lagrangian particle transport
-    and dispersion models, physics-based emission schemes, data assimilation
-    (3DVAR, EnKF), climate and atmospheric-chemistry models, downscaling, bias
-    correction, scenario and climate-pathway analysis.
+  \item[Physical \& Numerical Modeling:] Numerical weather prediction
+    output and large weather datasets (satellite, radar and station
+    observations; ERA5 and MERRA-2 reanalyses), Lagrangian particle
+    transport and dispersion models,
+    physics-based emission schemes, data assimilation (3DVAR, EnKF), climate
+    and atmospheric-chemistry models, downscaling, bias correction, scenario
+    and climate-pathway analysis, climate teleconnection indices (ENSO, MJO,
+    NAO).
   \item[Programming \& Data:] Python (NumPy, pandas, Xarray, Dask,
-    GeoPandas), R, SQL, Bash, Fortran; Zarr, Parquet, NetCDF, HDF5; relational
-    and columnar stores; schema, warehouse, and data-model design.
+    GeoPandas), R, SQL, Bash, Fortran; GRIB2, BUFR, NetCDF, HDF5, Zarr,
+    Parquet; relational and columnar stores; schema, warehouse, and
+    data-model design.
   \item[Engineering \& Scale:] AWS (Batch, S3, Lambda), Docker,
     SLURM/MPI, CUDA and multi-GPU clusters; production ETL, automated QA/QC,
     anomaly detection, reproducible pipelines.
@@ -118,7 +125,10 @@ prototypes, and executive briefings. 30+ peer-reviewed publications.
     emulators, generating large perturbed-initial-condition ensembles on GPUs
     at a fraction of the cost of physics-based numerical weather prediction,
     then post-processing members into calibrated hazard probabilities and
-    spread-based confidence measures.
+    spread-based confidence measures; validated by hindcast (backtest)
+    evaluation against independent observations --- scoring forecast error,
+    ensemble spread, and calibration --- so reported skill reflects what the
+    system knew at issue time, not after-the-fact analyses.
   \item Applied extreme value theory (GEV and generalized Pareto,
     peaks-over-threshold) to fit the tails of storm severity distributions and
     derive return-period estimates well beyond the observational record, with
@@ -133,9 +143,9 @@ prototypes, and executive briefings. 30+ peer-reviewed publications.
     simulate emission, long-range transport, and deposition at the spatial
     resolution needed for asset-level exposure.
   \item Build, tune, and validate machine-learning models (PyTorch, JAX,
-    scikit-learn) that score risk exposure across hundreds of millions of
-    records --- owning feature engineering, training, cross-validation, and
-    production deployment end to end.
+    scikit-learn) that extract predictive signals and score risk exposure
+    across hundreds of millions of records --- owning feature engineering,
+    training, cross-validation, and production deployment end to end.
   \item Set technical direction across the program and review engineering and
     analytical work; keep the team aligned to milestones through regular
     check-ins with engineers and analysts, and report delivery status to
