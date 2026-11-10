@@ -149,6 +149,116 @@
       <h1>Blog.</h1>
     </div>
     <div class="post-list">
+    <a class="post-card" href="blog/lesson-39-backfill-capstone.html">
+      <span class="post-num">39</span>
+      <div>
+        <div class="post-meta">Nov 25, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Capstone: backfill and the run report</h2>
+        <p class="post-desc">The module&#x27;s exam: re-running a past week safely (only possible because of bronze, keys, and gates) and the three numbers that prove a run was healthy.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-38-gold-layer-serving.html">
+      <span class="post-num">38</span>
+      <div>
+        <div class="post-meta">Nov 24, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Serving the gold layer</h2>
+        <p class="post-desc">Stage 4: publishing a pre-aggregated, date-partitioned gold table that DuckDB queries in place — speed designed in at publish time, not bought with a bigger server.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-37-orchestration-dag.html">
+      <span class="post-num">37</span>
+      <div>
+        <div class="post-meta">Nov 23, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Orchestration: the DAG runs the show</h2>
+        <p class="post-desc">The layer that runs the stages in order, on a schedule, with retries: an Airflow DAG for the station pipeline, and what catchup=False protects you from.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-36-incremental-idempotent.html">
+      <span class="post-num">36</span>
+      <div>
+        <div class="post-meta">Nov 20, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Incremental loads and idempotency</h2>
+        <p class="post-desc">Process only what&#x27;s new, and make re-running a window harmless: the dedupe key, keep=&#x27;last&#x27;, and the two-run test every pipeline must pass.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-35-spatial-enrichment.html">
+      <span class="post-num">35</span>
+      <div>
+        <div class="post-meta">Nov 19, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Spatial enrichment: points meet polygons</h2>
+        <p class="post-desc">Stage 3 continues: a spatial join attaches each station&#x27;s county, so gold can aggregate by place — and the unmatched rows become a quality signal.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-34-data-quality-gates.html">
+      <span class="post-num">34</span>
+      <div>
+        <div class="post-meta">Nov 18, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Data quality gates: fail loud, fail early</h2>
+        <p class="post-desc">A written contract for your data — columns, types, ranges, uniqueness — enforced between silver and gold with pandera, so bad data stops the run instead of reaching a map.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-33-silver-layer.html">
+      <span class="post-num">33</span>
+      <div>
+        <div class="post-meta">Nov 17, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Clean and standardize: the silver layer</h2>
+        <p class="post-desc">Stage 3: turning nested raw GeoJSON into a flat, typed table with a geometry column and a declared CRS — the silver layer every later stage can trust.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-32-bronze-layer.html">
+      <span class="post-num">32</span>
+      <div>
+        <div class="post-meta">Nov 16, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Land it raw: the bronze layer</h2>
+        <p class="post-desc">Stage 2: saving API responses byte-for-byte, partitioned by day, before anyone cleans anything — the bronze layer as the pipeline&#x27;s memory.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-31-api-ingestion.html">
+      <span class="post-num">31</span>
+      <div>
+        <div class="post-meta">Nov 13, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Ingesting from an API: paginate, don&#x27;t guess</h2>
+        <p class="post-desc">Stage 1 of the pipeline: fetching a day of weather observations from the National Weather Service API — User-Agent, time windows, and following pagination links.</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
+    <a class="post-card" href="blog/lesson-30-pipeline-anatomy.html">
+      <span class="post-num">30</span>
+      <div>
+        <div class="post-meta">Nov 12, 2026</div>
+        <span class="tag">Data Engineering Fundamentals</span>
+        <h2>Anatomy of a pipeline: ELT, stage by stage</h2>
+        <p class="post-desc">One pipeline, four stages: extract, land raw, transform, serve — and why modern lakes load first and transform second (ELT).</p>
+        <span class="post-read">Read &rarr;</span>
+      </div>
+    </a>
+
     <a class="post-card" href="blog/lesson-29-spatial-indexing.html">
       <span class="post-num">29</span>
       <div>

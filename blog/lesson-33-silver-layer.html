@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="data:," />
+  <title>Clean and standardize: the silver layer — Arman Pouyaei</title>
+  <meta name="description" content="Lesson 33: building the silver layer — flattening nested JSON, parsing real types, declaring a CRS, and writing partitioned Parquet." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YPCWFBDRNP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YPCWFBDRNP');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+    :root{
+      --bg:#ffffff; --surface:#f4f4f4; --ink:#111111; --muted:#6b6b6b;
+      --accent:#1a4be0; --accent-ink:#ffffff; --line:#e3e3e3;
+      --display:"Big Shoulders","Arial Narrow",sans-serif;
+      --text:"Public Sans",system-ui,sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+      --step-small:clamp(0.8125rem,0.79rem + 0.1vw,0.875rem);
+      --step-body:clamp(1.0625rem,1rem + 0.25vw,1.1875rem);
+      --step-lead:clamp(1.25rem,1.1rem + 0.7vw,1.625rem);
+      --step-head:clamp(2.5rem,1.2rem + 5vw,5.5rem);
+      --margin:clamp(16px,4vw,64px);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;font-family:var(--text);font-size:var(--step-body);
+      line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;}
+    h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:0.95;margin:0;}
+    a{color:inherit;}
+    ::selection{background:var(--accent);color:var(--accent-ink);}
+    img{display:block;max-width:100%;}
+    .topbar{display:flex;align-items:center;gap:clamp(14px,2.5vw,32px);
+      padding:20px var(--margin);border-bottom:1px solid var(--line);}
+    .wordmark{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:0.01em;font-size:20px;text-decoration:none;margin-right:auto;color:var(--ink);}
+    .topbar nav{display:flex;gap:clamp(12px,2vw,28px);}
+    .topbar nav a{text-decoration:none;font-size:var(--step-small);font-weight:600;color:var(--ink);padding:6px 2px;}
+    .topbar nav a:hover,.topbar nav a.active{color:var(--accent);}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;
+      background:var(--accent);color:var(--accent-ink);font:600 12px/1 var(--text);
+      text-decoration:none;white-space:nowrap;border:0;cursor:pointer;
+      transition:transform .18s ease,background .18s ease;}
+    .btn:hover{background:#1538b3;transform:translateY(-1px);}
+    .article{max-width:780px;margin:0 auto;padding:clamp(48px,7vw,96px) var(--margin) clamp(80px,10vw,140px);}
+    .kicker{font:600 var(--step-small)/1.6 var(--text);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--accent);margin-bottom:20px;}
+    .article h1{font-size:clamp(2.1rem,1.3rem + 4vw,3.8rem);margin:0 0 36px;}
+    .article h2{font-size:clamp(1.35rem,1.1rem + 1.4vw,1.9rem);margin:52px 0 16px;}
+    .article p,.article li{line-height:1.75;font-size:var(--step-body);color:var(--ink);}
+    .article p{margin:0 0 20px;}
+    .article ol,.article ul{margin:0 0 22px;padding-left:24px;}
+    .article li{margin-bottom:10px;}
+    .article a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;}
+    .article a:hover{color:#1538b3;}
+    pre{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+      padding:20px 22px;overflow-x:auto;font:13.5px/1.7 var(--mono);color:var(--ink);margin:0 0 24px;}
+    p code,li code{font-family:var(--mono);font-size:.85em;background:var(--surface);
+      color:var(--accent);padding:2px 7px;border-radius:4px;}
+    .callout{border-left:3px solid var(--accent);background:var(--surface);padding:18px 22px;margin:0 0 24px;}
+    .callout p{margin:0;}
+    details.answer{background:var(--surface);border:1px solid var(--line);padding:18px 22px;margin:0 0 24px;}
+    details.answer summary{cursor:pointer;font:600 12px/1.4 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--ink);list-style:none;}
+    details.answer summary::-webkit-details-marker{display:none;}
+    details.answer summary::before{content:"+ ";color:var(--accent);}
+    details.answer[open] summary::before{content:"– ";}
+    details.answer summary:hover{color:var(--accent);}
+    details.answer .answer-body{margin-top:14px;}
+    details.answer .answer-body p{margin:0 0 12px;}
+    details.answer .answer-body p:last-child{margin-bottom:0;}
+    details.answer .answer-body pre{margin:12px 0 16px;background:#ffffff;}
+    .back{display:inline-block;margin-top:60px;font:600 12px/1 var(--text);letter-spacing:.1em;
+      text-transform:uppercase;color:var(--accent);text-decoration:none;}
+    .back:hover{color:#1538b3;}
+    .footer{background:var(--ink);color:var(--bg);padding:44px var(--margin) 30px;}
+    .footer-word{font-family:var(--display);font-weight:800;text-transform:uppercase;
+      letter-spacing:-0.005em;line-height:.9;font-size:clamp(40px,9vw,150px);margin:0 0 30px;color:var(--bg);}
+    .footer-meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+      font-size:13px;color:rgba(255,255,255,.65);}
+    .footer-meta a{color:var(--bg);text-decoration:none;font-weight:600;}
+    .footer-meta a:hover{color:#9db4ff;}
+    @media (max-width:900px){
+      .topbar nav a:not(:nth-last-child(-n+2)){display:none;}
+    }
+    @media (max-width:600px){
+      .wordmark{font-size:16px;white-space:nowrap;}
+      .topbar{padding:16px var(--margin);}
+      .topbar .btn{font-size:12px;padding:0 14px;}
+    }
+
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="../index.html">Arman Pouyaei</a>
+    <nav aria-label="Primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#capabilities">Capabilities</a>
+      <a href="../index.html#contact">Contact</a>
+      <a href="../blog.html" class="active">Blog</a>
+      <a href="../climate-arcade/">Climate Arcade</a>
+    </nav>
+    <a class="btn" href="mailto:arman.pouyaei@gmail.com">Start a conversation</a>
+  </header>
+
+  <main class="article">
+    <article>
+      <div class="kicker">Lesson 33 &nbsp;·&nbsp; Nov 17, 2026</div>
+      <span class="tag">Data Engineering Fundamentals</span>
+      <h1>Clean and standardize: the silver layer</h1>
+
+      <p>Stage 3 begins: transform. Bronze is faithful but messy — temperatures arrive as nested JSON objects, timestamps as strings, coordinates as GeoJSON arrays. Silver is where observations become a real table: flat columns, real types, a geometry column with a declared CRS. This is the dataset every later stage trusts.</p>
+
+      <h2>The code</h2>
+      <pre>import geopandas as gpd
+import pandas as pd
+
+raw = gpd.read_file(&quot;lake/bronze/nws/date=2026-11-12/observations.json&quot;)
+
+silver = pd.DataFrame({
+    &quot;station&quot;: raw[&quot;station&quot;].str.rsplit(&quot;/&quot;, n=1).str[-1],
+    &quot;time&quot;:    pd.to_datetime(raw[&quot;timestamp&quot;]),
+    &quot;temp_c&quot;:  raw[&quot;temperature&quot;].apply(lambda t: t[&quot;value&quot;]),
+    &quot;geometry&quot;: gpd.points_from_xy(raw.geometry.x, raw.geometry.y),
+}).pipe(gpd.GeoDataFrame, crs=&quot;EPSG:4326&quot;)
+
+silver = silver.dropna(subset=[&quot;temp_c&quot;])
+silver.to_parquet(&quot;lake/silver/observations/date=2026-11-12.parquet&quot;)</pre>
+
+      <h2>In practice</h2>
+      <p><strong>Three standardizations do the work.</strong> Types: strings become datetimes and floats, so sorting and math behave. Shape: nested objects flatten into columns — <code>temperature.value</code> becomes <code>temp_c</code>. Space: bare coordinates become a geometry column with a CRS attached.</p>
+      <p><strong>Declare, don&#x27;t transform.</strong> The API speaks WGS84 longitude/latitude, so we *set* the CRS to EPSG:4326 — telling GeoPandas what the numbers mean. <code>to_crs()</code> would be for *changing* that meaning (say, to metres for distance work). Mixing the two up is the classic silent-corruption bug: the numbers stay the same while their meaning shifts.</p>
+      <p><strong>Drop in silver, never in bronze.</strong> A temperature row with no temperature is noise for this pipeline, so <code>dropna</code> removes it — from silver. The raw row still exists in bronze if another consumer ever wants it. And the output goes to Parquet (Lesson 14), partitioned by date like everything else in the lake.</p>
+      <p>Python bridge: Every line here is pandas and GeoPandas you already know. Silver is just &#x27;the cleaning script you would write anyway&#x27;, given a name, a fixed input (bronze), and an output contract.</p>
+
+      <h2>Further reading</h2>
+      <p><a href="https://geopandas.org/en/v0.13.1/docs/user_guide/projections.html" target="_blank" rel="noopener">Projections — GeoPandas user guide</a> (the GeoPandas guide to setting a CRS vs re-projecting with to_crs — the distinction this lesson leans on)</p>
+
+      <h2>Try it</h2>
+      <p><strong>Practice question:</strong> A row arrives with temp_c = 999.9 (a classic sensor error code), and another with latitude 140.2. Which of these does today&#x27;s silver code catch, which slip through — and what is the one-line fix for the ones that slip?</p>
+      <details class="answer">
+        <summary>Show answer</summary>
+        <div class="answer-body">
+          <pre>silver = silver[
+    silver.geometry.y.between(-90, 90)
+    &amp; silver[&quot;temp_c&quot;].between(-60, 60)
+]</pre>
+          <p><strong>Result:</strong> Neither is caught: dropna only removes missing values, and 999.9 and 140.2 are present, just impossible — latitude cannot exceed 90, and 999.9 °C is a sensor error code, not weather. Range filters (above) remove both. The lesson inside the lesson: type-clean is not value-clean — which is why tomorrow&#x27;s lesson adds explicit quality checks instead of hoping the cleaning code catches everything.</p>
+        </div>
+      </details>
+
+      <a class="back" href="../blog.html">&larr; All posts</a>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-word">Arman Pouyaei</p>
+    <div class="footer-meta">
+      <span>© 2026 Arman Pouyaei</span>
+      <a href="../index.html">&larr; Back to portfolio</a>
+    </div>
+  </footer>
+</body>
+</html>
